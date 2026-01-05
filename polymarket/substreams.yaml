@@ -2,7 +2,7 @@ specVersion: v0.1.0
 package:
   name: polymarket
   version: v0.1.0
-  url: https://github.com/pinax-network/substreams-evm
+  url: https://github.com/pinax-network/substreams-polymarket
   description: Polymarket for EVM
   image: ../image.png
 
