@@ -6,6 +6,7 @@ package:
 protobuf:
   files:
     - v1/polymarket.proto
+    - v1/erc1155.proto
 
   excludePaths:
     - sf/substreams

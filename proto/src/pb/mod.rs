@@ -1,4 +1,11 @@
 // @generated
+pub mod erc1155 {
+    // @@protoc_insertion_point(attribute:erc1155.v1)
+    pub mod v1 {
+        include!("erc1155.v1.rs");
+        // @@protoc_insertion_point(erc1155.v1)
+    }
+}
 pub mod polymarket {
     // @@protoc_insertion_point(attribute:polymarket.v1)
     pub mod v1 {

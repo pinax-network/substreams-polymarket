@@ -1,5 +1,5 @@
 [workspace]
-members = ["clickhouse", "polymarket", "proto"]
+members = ["clickhouse", "polymarket", "erc1155", "common", "proto"]
 resolver = "2"
 
 [workspace.package]

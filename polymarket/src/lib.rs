@@ -1,18 +1,9 @@
 mod store;
+use common::{create_log, create_transaction};
 use proto::pb::polymarket::v1 as pb;
 use substreams_abis::evm::polymarket::cftexchange as polymarket;
-use substreams_ethereum::pb::eth::v2::{Block, Log};
+use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
-
-fn create_log(log: &Log, event: pb::log::Log) -> pb::Log {
-    pb::Log {
-        address: log.address.to_vec(),
-        ordinal: log.ordinal,
-        topics: log.topics.iter().map(|t| t.to_vec()).collect(),
-        data: log.data.to_vec(),
-        log: Some(event),
-    }
-}
 
 #[substreams::handlers::map]
 fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
@@ -32,21 +23,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
     let mut total_trading_unpaused = 0;
 
     for trx in block.transactions() {
-        let gas_price = trx.clone().gas_price.unwrap_or_default().with_decimal(0).to_string();
-        let value = trx.clone().value.unwrap_or_default().with_decimal(0);
-        let to = if trx.to.is_empty() { None } else { Some(trx.to.to_vec()) };
-        let mut transaction = pb::Transaction {
-            from: trx.from.to_vec(),
-            to,
-            hash: trx.hash.to_vec(),
-            nonce: trx.nonce,
-            gas_price,
-            gas_limit: trx.gas_limit,
-            gas_used: trx.receipt().receipt.cumulative_gas_used,
-            value: value.to_string(),
-            logs: vec![],
-        };
-
+        let mut transaction = create_transaction(trx);
         for log_view in trx.receipt().logs() {
             let log = log_view.log;
 
@@ -174,14 +151,18 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
             // TradingPaused event
             if let Some(event) = polymarket::events::TradingPaused::match_and_decode(log) {
                 total_trading_paused += 1;
-                let event = pb::log::Log::TradingPaused(pb::TradingPaused { pauser: event.pauser.to_vec() });
+                let event = pb::log::Log::TradingPaused(pb::TradingPaused {
+                    pauser: event.pauser.to_vec(),
+                });
                 transaction.logs.push(create_log(log, event));
             }
 
             // TradingUnpaused event
             if let Some(event) = polymarket::events::TradingUnpaused::match_and_decode(log) {
                 total_trading_unpaused += 1;
-                let event = pb::log::Log::TradingUnpaused(pb::TradingUnpaused { pauser: event.pauser.to_vec() });
+                let event = pb::log::Log::TradingUnpaused(pb::TradingUnpaused {
+                    pauser: event.pauser.to_vec(),
+                });
                 transaction.logs.push(create_log(log, event));
             }
         }
@@ -199,10 +180,16 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
     substreams::log::info!("Total OrderCancelled events: {}", total_order_cancelled);
     substreams::log::info!("Total OrderFilled events: {}", total_order_filled);
     substreams::log::info!("Total OrdersMatched events: {}", total_orders_matched);
-    substreams::log::info!("Total ProxyFactoryUpdated events: {}", total_proxy_factory_updated);
+    substreams::log::info!(
+        "Total ProxyFactoryUpdated events: {}",
+        total_proxy_factory_updated
+    );
     substreams::log::info!("Total RemovedAdmin events: {}", total_removed_admin);
     substreams::log::info!("Total RemovedOperator events: {}", total_removed_operator);
-    substreams::log::info!("Total SafeFactoryUpdated events: {}", total_safe_factory_updated);
+    substreams::log::info!(
+        "Total SafeFactoryUpdated events: {}",
+        total_safe_factory_updated
+    );
     substreams::log::info!("Total TokenRegistered events: {}", total_token_registered);
     substreams::log::info!("Total TradingPaused events: {}", total_trading_paused);
     substreams::log::info!("Total TradingUnpaused events: {}", total_trading_unpaused);
