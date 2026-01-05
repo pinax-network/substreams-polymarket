@@ -1,2 +1,1 @@
-# substreams-polymarket
-Substreams Polymarket
+# Substreams Polymarket

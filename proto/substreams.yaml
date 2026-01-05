@@ -1,0 +1,12 @@
+specVersion: v0.1.0
+package:
+  name: proto
+  version: v0.0.0
+
+protobuf:
+  files:
+    - v1/polymarket.proto
+
+  excludePaths:
+    - sf/substreams
+    - google
