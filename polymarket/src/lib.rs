@@ -1,5 +1,5 @@
 mod store;
-use common::{create_log, create_transaction};
+use common::{CreateLog, CreateTransaction};
 use proto::pb::polymarket::v1 as pb;
 use substreams_abis::evm::polymarket::cftexchange as polymarket;
 use substreams_ethereum::pb::eth::v2::Block;
@@ -23,7 +23,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
     let mut total_trading_unpaused = 0;
 
     for trx in block.transactions() {
-        let mut transaction = create_transaction(trx);
+        let mut transaction = pb::Transaction::create_transaction(trx);
         for log_view in trx.receipt().logs() {
             let log = log_view.log;
 
@@ -35,7 +35,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     token_id: event.token_id.to_string(),
                     amount: event.amount.to_string(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // NewAdmin event
@@ -45,7 +45,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     new_admin_address: event.new_admin_address.to_vec(),
                     admin: event.admin.to_vec(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // NewOperator event
@@ -55,7 +55,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     new_operator_address: event.new_operator_address.to_vec(),
                     admin: event.admin.to_vec(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // OrderCancelled event
@@ -64,7 +64,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                 let event = pb::log::Log::OrderCancelled(pb::OrderCancelled {
                     order_hash: event.order_hash.to_vec(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // OrderFilled event
@@ -80,7 +80,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     taker_amount_filled: event.taker_amount_filled.to_string(),
                     fee: event.fee.to_string(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // OrdersMatched event
@@ -94,7 +94,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     maker_amount_filled: event.maker_amount_filled.to_string(),
                     taker_amount_filled: event.taker_amount_filled.to_string(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // ProxyFactoryUpdated event
@@ -104,7 +104,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     old_proxy_factory: event.old_proxy_factory.to_vec(),
                     new_proxy_factory: event.new_proxy_factory.to_vec(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // RemovedAdmin event
@@ -114,7 +114,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     removed_admin: event.removed_admin.to_vec(),
                     admin: event.admin.to_vec(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // RemovedOperator event
@@ -124,7 +124,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     removed_operator: event.removed_operator.to_vec(),
                     admin: event.admin.to_vec(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // SafeFactoryUpdated event
@@ -134,7 +134,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     old_safe_factory: event.old_safe_factory.to_vec(),
                     new_safe_factory: event.new_safe_factory.to_vec(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // TokenRegistered event
@@ -145,7 +145,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                     token0: event.token0.to_string(),
                     token1: event.token1.to_string(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // TradingPaused event
@@ -154,7 +154,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                 let event = pb::log::Log::TradingPaused(pb::TradingPaused {
                     pauser: event.pauser.to_vec(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // TradingUnpaused event
@@ -163,7 +163,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
                 let event = pb::log::Log::TradingUnpaused(pb::TradingUnpaused {
                     pauser: event.pauser.to_vec(),
                 });
-                transaction.logs.push(create_log(log, event));
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
         }
 

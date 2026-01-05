@@ -23,6 +23,6 @@ modules:
     inputs:
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:evm.erc1155.v1.Events
+      type: proto:erc1155.v1.Events
 
 network: mainnet
