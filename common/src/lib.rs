@@ -76,3 +76,8 @@ mod umactfadapter_impl {
     use super::*;
     impl_create_log_and_transaction!(proto::pb::umactfadapter::v1);
 }
+
+mod negriskadapter_impl {
+    use super::*;
+    impl_create_log_and_transaction!(proto::pb::negriskadapter::v1);
+}
