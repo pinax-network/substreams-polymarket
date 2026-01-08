@@ -1,0 +1,35 @@
+specVersion: v0.1.0
+package:
+  name: erc20balances
+  version: v0.1.0
+  url: https://github.com/pinax-network/substreams-polymarket
+  description: ERC-20 Balances via RPC substreams package
+  image: ../image.png
+
+imports:
+  erc20transfers: ../erc20transfers/substreams.yaml
+
+protobuf:
+  files:
+    - erc20balances.proto
+  importPaths:
+    - ../proto/v1
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ../target/wasm32-unknown-unknown/release/erc20balances.wasm
+
+modules:
+  - name: map_events
+    kind: map
+    inputs:
+      - params: string
+      - map: erc20transfers:map_events
+    output:
+      type: proto:erc20balances.v1.Events
+
+network: mainnet
+
+params:
+  map_events: 100 # CHUNK_SIZE (Batch RPC Calls)

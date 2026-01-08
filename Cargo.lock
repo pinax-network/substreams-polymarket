@@ -204,6 +204,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "erc20balances"
+version = "0.0.0"
+dependencies = [
+ "common",
+ "proto",
+ "substreams",
+ "substreams-abis",
+ "substreams-ethereum",
+]
+
+[[package]]
 name = "erc20transfers"
 version = "0.0.0"
 dependencies = [
