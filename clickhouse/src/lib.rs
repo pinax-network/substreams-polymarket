@@ -2,6 +2,7 @@ mod ctfexchange;
 mod erc1155;
 mod logs;
 mod transactions;
+mod umactfadapter;
 use substreams::errors::Error;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::pb::database::DatabaseChanges;
@@ -11,11 +12,13 @@ pub fn db_out(
     clock: Clock,
     events_polymarket: proto::pb::polymarket::v1::Events,
     events_erc1155: proto::pb::erc1155::v1::Events,
+    events_umactfadapter: proto::pb::umactfadapter::v1::Events,
 ) -> Result<DatabaseChanges, Error> {
     let mut tables = substreams_database_change::tables::Tables::new();
 
     ctfexchange::process_events(&mut tables, &clock, &events_polymarket);
     erc1155::process_events(&mut tables, &clock, &events_erc1155);
+    umactfadapter::process_events(&mut tables, &clock, &events_umactfadapter);
 
     // ONLY include blocks if events are present
     if !tables.tables.is_empty() {
