@@ -44,96 +44,96 @@ The following tables describe the events available in Clickhouse for each Substr
 
 Events from the CTF Exchange contract for order matching and trading operations.
 
-| Event Name | Table Name | Description |
-| ---------- | ---------- | ----------- |
-| OrderFilled | `ctfexchange_order_filled` | Emitted when an order is filled (swap events) |
-| FeeCharged | `ctfexchange_fee_charged` | Emitted when a fee is charged on a trade |
-| NewAdmin | `ctfexchange_new_admin` | Emitted when a new admin is added |
-| NewOperator | `ctfexchange_new_operator` | Emitted when a new operator is added |
-| OrderCancelled | `ctfexchange_order_cancelled` | Emitted when an order is cancelled |
-| OrdersMatched | `ctfexchange_orders_matched` | Emitted when orders are matched |
-| ProxyFactoryUpdated | `ctfexchange_proxy_factory_updated` | Emitted when the proxy factory address is updated |
-| RemovedAdmin | `ctfexchange_removed_admin` | Emitted when an admin is removed |
-| RemovedOperator | `ctfexchange_removed_operator` | Emitted when an operator is removed |
-| SafeFactoryUpdated | `ctfexchange_safe_factory_updated` | Emitted when the safe factory address is updated |
-| TokenRegistered | `ctfexchange_token_registered` | Emitted when a new token pair is registered |
-| TradingPaused | `ctfexchange_trading_paused` | Emitted when trading is paused |
-| TradingUnpaused | `ctfexchange_trading_unpaused` | Emitted when trading is unpaused |
+| Event | Description |
+| ----- | ----------- |
+| OrderFilled | Emitted when an order is filled (swap events) |
+| FeeCharged | Emitted when a fee is charged on a trade |
+| NewAdmin | Emitted when a new admin is added |
+| NewOperator | Emitted when a new operator is added |
+| OrderCancelled | Emitted when an order is cancelled |
+| OrdersMatched | Emitted when orders are matched |
+| ProxyFactoryUpdated | Emitted when the proxy factory address is updated |
+| RemovedAdmin | Emitted when an admin is removed |
+| RemovedOperator | Emitted when an operator is removed |
+| SafeFactoryUpdated | Emitted when the safe factory address is updated |
+| TokenRegistered | Emitted when a new token pair is registered |
+| TradingPaused | Emitted when trading is paused |
+| TradingUnpaused | Emitted when trading is unpaused |
 
 ### ConditionalTokens
 
 Events from the Conditional Tokens (CTF) contract for condition preparation and resolution.
 
-| Event Name | Table Name | Description |
-| ---------- | ---------- | ----------- |
-| ConditionPreparation | `conditionaltokens_condition_preparation` | Emitted upon the successful preparation of a condition |
-| ConditionResolution | `conditionaltokens_condition_resolution` | Emitted when a condition is resolved |
-| PositionSplit | `conditionaltokens_position_split` | Emitted when a position is successfully split |
-| PositionsMerge | `conditionaltokens_positions_merge` | Emitted when positions are successfully merged |
-| PayoutRedemption | `conditionaltokens_payout_redemption` | Emitted when payout is redeemed |
+| Event | Description |
+| ----- | ----------- |
+| ConditionPreparation | Emitted upon the successful preparation of a condition |
+| ConditionResolution | Emitted when a condition is resolved |
+| PositionSplit | Emitted when a position is successfully split |
+| PositionsMerge | Emitted when positions are successfully merged |
+| PayoutRedemption | Emitted when payout is redeemed |
 
 ### ERC1155
 
 Events from the ERC1155 token standard for token transfers and approvals.
 
-| Event Name | Table Name | Description |
-| ---------- | ---------- | ----------- |
-| TransferSingle | `erc1155_transfer_single` | Emitted when a single token is transferred |
-| TransferBatch | `erc1155_transfer_batch` | Emitted when multiple tokens are transferred in a batch |
-| ApprovalForAll | `erc1155_approval_for_all` | Emitted when an operator is approved or revoked for all tokens |
-| URI | `erc1155_uri` | Emitted when a token URI is updated |
+| Event | Description |
+| ----- | ----------- |
+| TransferSingle | Emitted when a single token is transferred |
+| TransferBatch | Emitted when multiple tokens are transferred in a batch |
+| ApprovalForAll | Emitted when an operator is approved or revoked for all tokens |
+| URI | Emitted when a token URI is updated |
 
 ### NegRiskAdapter
 
 Events from the Neg Risk Adapter contract for market preparation and position management.
 
-| Event Name | Table Name | Description |
-| ---------- | ---------- | ----------- |
-| MarketPrepared | `negriskadapter_market_prepared` | Emitted when a new market is prepared |
-| NewAdmin | `negriskadapter_new_admin` | Emitted when a new admin is added |
-| OutcomeReported | `negriskadapter_outcome_reported` | Emitted when an outcome is reported for a question |
-| PayoutRedemption | `negriskadapter_payout_redemption` | Emitted when payout is redeemed |
-| PositionSplit | `negriskadapter_position_split` | Emitted when a position is split |
-| PositionsConverted | `negriskadapter_positions_converted` | Emitted when positions are converted |
-| PositionsMerge | `negriskadapter_positions_merge` | Emitted when positions are merged |
-| QuestionPrepared | `negriskadapter_question_prepared` | Emitted when a new question is prepared for a market |
-| RemovedAdmin | `negriskadapter_removed_admin` | Emitted when an admin is removed |
+| Event | Description |
+| ----- | ----------- |
+| MarketPrepared | Emitted when a new market is prepared |
+| NewAdmin | Emitted when a new admin is added |
+| OutcomeReported | Emitted when an outcome is reported for a question |
+| PayoutRedemption | Emitted when payout is redeemed |
+| PositionSplit | Emitted when a position is split |
+| PositionsConverted | Emitted when positions are converted |
+| PositionsMerge | Emitted when positions are merged |
+| QuestionPrepared | Emitted when a new question is prepared for a market |
+| RemovedAdmin | Emitted when an admin is removed |
 
 ### FeeModule
 
 Events from the Fee Module contract for fee management.
 
-| Event Name | Table Name | Description |
-| ---------- | ---------- | ----------- |
-| FeeRefunded | `feemodule_fee_refunded` | Emitted when a fee is refunded |
-| FeeWithdrawn | `feemodule_fee_withdrawn` | Emitted when a fee is withdrawn |
-| NewAdmin | `feemodule_new_admin` | Emitted when a new admin is added |
-| RemovedAdmin | `feemodule_removed_admin` | Emitted when an admin is removed |
+| Event | Description |
+| ----- | ----------- |
+| FeeRefunded | Emitted when a fee is refunded |
+| FeeWithdrawn | Emitted when a fee is withdrawn |
+| NewAdmin | Emitted when a new admin is added |
+| RemovedAdmin | Emitted when an admin is removed |
 
 ### SafeProxyFactory
 
 Events from the Safe Proxy Factory contract for proxy wallet creation.
 
-| Event Name | Table Name | Description |
-| ---------- | ---------- | ----------- |
-| ProxyCreation | `safeproxyfactory_proxy_creation` | Emitted when a new Safe proxy is created |
-| ProxyCreationL2 | `safeproxyfactory_proxy_creation_l2` | Emitted when a new Safe proxy is created with L2 metadata |
-| ChainSpecificProxyCreationL2 | `safeproxyfactory_chain_specific_proxy_creation_l2` | Emitted when a chain-specific Safe proxy is created |
+| Event | Description |
+| ----- | ----------- |
+| ProxyCreation | Emitted when a new Safe proxy is created |
+| ProxyCreationL2 | Emitted when a new Safe proxy is created with L2 metadata |
+| ChainSpecificProxyCreationL2 | Emitted when a chain-specific Safe proxy is created |
 
 ### UmaCtfAdapter
 
 Events from the UMA CTF Adapter contract for question initialization and resolution.
 
-| Event Name | Table Name | Description |
-| ---------- | ---------- | ----------- |
-| AncillaryDataUpdated | `umactfadapter_ancillary_data_updated` | Emitted when ancillary data is updated for a question |
-| NewAdmin | `umactfadapter_new_admin` | Emitted when a new admin is added |
-| QuestionEmergencyResolved | `umactfadapter_question_emergency_resolved` | Emitted when a question is resolved via emergency resolution |
-| QuestionFlagged | `umactfadapter_question_flagged` | Emitted when a question is flagged |
-| QuestionInitialized | `umactfadapter_question_initialized` | Emitted when a new question is initialized |
-| QuestionPaused | `umactfadapter_question_paused` | Emitted when a question is paused |
-| QuestionReset | `umactfadapter_question_reset` | Emitted when a question is reset |
-| QuestionResolved | `umactfadapter_question_resolved` | Emitted when a question is resolved |
-| QuestionUnpaused | `umactfadapter_question_unpaused` | Emitted when a question is unpaused |
-| RemovedAdmin | `umactfadapter_removed_admin` | Emitted when an admin is removed |
-| QuestionUnflagged | `umactfadapter_question_unflagged` | Emitted when a question is unflagged (V3 only) |
+| Event | Description |
+| ----- | ----------- |
+| AncillaryDataUpdated | Emitted when ancillary data is updated for a question |
+| NewAdmin | Emitted when a new admin is added |
+| QuestionEmergencyResolved | Emitted when a question is resolved via emergency resolution |
+| QuestionFlagged | Emitted when a question is flagged |
+| QuestionInitialized | Emitted when a new question is initialized |
+| QuestionPaused | Emitted when a question is paused |
+| QuestionReset | Emitted when a question is reset |
+| QuestionResolved | Emitted when a question is resolved |
+| QuestionUnpaused | Emitted when a question is unpaused |
+| RemovedAdmin | Emitted when an admin is removed |
+| QuestionUnflagged | Emitted when a question is unflagged (V3 only) |
