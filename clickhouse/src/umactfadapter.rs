@@ -63,7 +63,7 @@ fn process_ancillary_data_updated(
     log_index: usize,
     event: &umactfadapter::AncillaryDataUpdated,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_ancillary_data_updated", key);
 
     set_clock(clock, row);
@@ -84,7 +84,7 @@ fn process_new_admin(
     log_index: usize,
     event: &umactfadapter::NewAdmin,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_new_admin", key);
 
     set_clock(clock, row);
@@ -104,7 +104,7 @@ fn process_question_emergency_resolved(
     log_index: usize,
     event: &umactfadapter::QuestionEmergencyResolved,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_emergency_resolved", key);
 
     set_clock(clock, row);
@@ -124,7 +124,7 @@ fn process_question_flagged(
     log_index: usize,
     event: &umactfadapter::QuestionFlagged,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_flagged", key);
 
     set_clock(clock, row);
@@ -143,7 +143,7 @@ fn process_question_initialized(
     log_index: usize,
     event: &umactfadapter::QuestionInitialized,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_initialized", key);
 
     set_clock(clock, row);
@@ -168,7 +168,7 @@ fn process_question_paused(
     log_index: usize,
     event: &umactfadapter::QuestionPaused,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_paused", key);
 
     set_clock(clock, row);
@@ -187,7 +187,7 @@ fn process_question_reset(
     log_index: usize,
     event: &umactfadapter::QuestionReset,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_reset", key);
 
     set_clock(clock, row);
@@ -206,7 +206,7 @@ fn process_question_resolved(
     log_index: usize,
     event: &umactfadapter::QuestionResolved,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_resolved", key);
 
     set_clock(clock, row);
@@ -227,7 +227,7 @@ fn process_question_unpaused(
     log_index: usize,
     event: &umactfadapter::QuestionUnpaused,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_unpaused", key);
 
     set_clock(clock, row);
@@ -246,7 +246,7 @@ fn process_removed_admin(
     log_index: usize,
     event: &umactfadapter::RemovedAdmin,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_removed_admin", key);
 
     set_clock(clock, row);
@@ -266,7 +266,7 @@ fn process_question_unflagged(
     log_index: usize,
     event: &umactfadapter::QuestionUnflagged,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_unflagged", key);
 
     set_clock(clock, row);

@@ -36,7 +36,7 @@ fn process_transfer_single(
     log_index: usize,
     event: &erc1155::TransferSingle,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("erc1155_transfer_single", key);
 
     set_clock(clock, row);
@@ -59,7 +59,7 @@ fn process_transfer_batch(
     log_index: usize,
     event: &erc1155::TransferBatch,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("erc1155_transfer_batch", key);
 
     set_clock(clock, row);
@@ -82,7 +82,7 @@ fn process_approval_for_all(
     log_index: usize,
     event: &erc1155::ApprovalForAll,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("erc1155_approval_for_all", key);
 
     set_clock(clock, row);
@@ -103,7 +103,7 @@ fn process_uri(
     log_index: usize,
     event: &erc1155::Uri,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("erc1155_uri", key);
 
     set_clock(clock, row);

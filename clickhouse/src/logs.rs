@@ -2,7 +2,7 @@ use common::bytes_to_hex;
 use proto::pb::polymarket;
 use substreams::pb::substreams::Clock;
 
-pub fn log_key(clock: &Clock) -> [(&'static str, String); 3] {
+pub fn log_key(clock: &Clock, ordinal: u64) -> [(&'static str, String); 4] {
     let seconds = clock
         .timestamp
         .as_ref()
@@ -12,6 +12,7 @@ pub fn log_key(clock: &Clock) -> [(&'static str, String); 3] {
         ("minute", (seconds / 60).to_string()),
         ("timestamp", seconds.to_string()),
         ("block_num", clock.number.to_string()),
+        ("ordinal", ordinal.to_string()),
     ]
 }
 

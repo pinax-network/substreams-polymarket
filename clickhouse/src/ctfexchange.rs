@@ -71,7 +71,7 @@ fn process_order_filled(
     log_index: usize,
     event: &polymarket::OrderFilled,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_order_filled", key);
 
     set_clock(clock, row);
@@ -97,7 +97,7 @@ fn process_fee_charged(
     log_index: usize,
     event: &polymarket::FeeCharged,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_fee_charged", key);
 
     set_clock(clock, row);
@@ -118,7 +118,7 @@ fn process_new_admin(
     log_index: usize,
     event: &polymarket::NewAdmin,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_new_admin", key);
 
     set_clock(clock, row);
@@ -138,7 +138,7 @@ fn process_new_operator(
     log_index: usize,
     event: &polymarket::NewOperator,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_new_operator", key);
 
     set_clock(clock, row);
@@ -161,7 +161,7 @@ fn process_order_cancelled(
     log_index: usize,
     event: &polymarket::OrderCancelled,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_order_cancelled", key);
 
     set_clock(clock, row);
@@ -180,7 +180,7 @@ fn process_orders_matched(
     log_index: usize,
     event: &polymarket::OrdersMatched,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_orders_matched", key);
 
     set_clock(clock, row);
@@ -204,7 +204,7 @@ fn process_proxy_factory_updated(
     log_index: usize,
     event: &polymarket::ProxyFactoryUpdated,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_proxy_factory_updated", key);
 
     set_clock(clock, row);
@@ -224,7 +224,7 @@ fn process_removed_admin(
     log_index: usize,
     event: &polymarket::RemovedAdmin,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_removed_admin", key);
 
     set_clock(clock, row);
@@ -244,7 +244,7 @@ fn process_removed_operator(
     log_index: usize,
     event: &polymarket::RemovedOperator,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_removed_operator", key);
 
     set_clock(clock, row);
@@ -264,7 +264,7 @@ fn process_safe_factory_updated(
     log_index: usize,
     event: &polymarket::SafeFactoryUpdated,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_safe_factory_updated", key);
 
     set_clock(clock, row);
@@ -284,7 +284,7 @@ fn process_token_registered(
     log_index: usize,
     event: &polymarket::TokenRegistered,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_token_registered", key);
 
     set_clock(clock, row);
@@ -305,7 +305,7 @@ fn process_trading_paused(
     log_index: usize,
     event: &polymarket::TradingPaused,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_trading_paused", key);
 
     set_clock(clock, row);
@@ -324,7 +324,7 @@ fn process_trading_unpaused(
     log_index: usize,
     event: &polymarket::TradingUnpaused,
 ) {
-    let key = log_key(clock);
+    let key = log_key(clock, log.ordinal);
     let row = tables.create_row("ctfexchange_trading_unpaused", key);
 
     set_clock(clock, row);
