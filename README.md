@@ -7,6 +7,7 @@
   - [x] Neg Risk CTF Exchange (`0xC5d563A36AE78145C45a50134d48A1215220f80a`)
 - [x] ERC1155
   - [x] Conditional Tokens (`0x4D97DCd97eC945f40cF65F87097ACe5EA0476045`)
+- [x] NegRiskAdapter (`0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296`)
 
 ## Data Features
 
