@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package conditionaltokens.v1;
+
+message Events { repeated Transaction transactions = 1; }
+
+message Transaction {
+  bytes hash = 1;
+  bytes from = 2;
+  optional bytes to = 3;
+  uint64 nonce = 5;
+  string gas_price = 6; // uint256
+  uint64 gas_limit = 7;
+  uint64 gas_used = 8;
+  string value = 9; // uint256
+  repeated Log logs = 10;
+}
+
+// ConditionalTokens events (excluding ERC1155 standard events)
+// https://github.com/gnosis/conditional-tokens-contracts
+message Log {
+  bytes address = 1;
+  uint64 ordinal = 2;
+  repeated bytes topics = 3;
+  bytes data = 4;
+  oneof log {
+    // ConditionalTokens events
+    ConditionPreparation condition_preparation = 10;
+    ConditionResolution condition_resolution = 11;
+    PositionSplit position_split = 12;
+    PositionsMerge positions_merge = 13;
+    PayoutRedemption payout_redemption = 14;
+  }
+}
+
+// ConditionPreparation event
+// Emitted upon the successful preparation of a condition
+message ConditionPreparation {
+  bytes condition_id = 1; // bytes32
+  bytes oracle = 2; // address
+  bytes question_id = 3; // bytes32
+  string outcome_slot_count = 4; // uint256
+}
+
+// ConditionResolution event
+// Emitted when a condition is resolved
+message ConditionResolution {
+  bytes condition_id = 1; // bytes32
+  bytes oracle = 2; // address
+  bytes question_id = 3; // bytes32
+  string outcome_slot_count = 4; // uint256
+  repeated string payout_numerators = 5; // uint256[]
+}
+
+// PositionSplit event
+// Emitted when a position is successfully split
+message PositionSplit {
+  bytes stakeholder = 1; // address
+  bytes collateral_token = 2; // address
+  bytes parent_collection_id = 3; // bytes32
+  bytes condition_id = 4; // bytes32
+  repeated string partition = 5; // uint256[]
+  string amount = 6; // uint256
+}
+
+// PositionsMerge event
+// Emitted when positions are successfully merged
+message PositionsMerge {
+  bytes stakeholder = 1; // address
+  bytes collateral_token = 2; // address
+  bytes parent_collection_id = 3; // bytes32
+  bytes condition_id = 4; // bytes32
+  repeated string partition = 5; // uint256[]
+  string amount = 6; // uint256
+}
+
+// PayoutRedemption event
+// Emitted when payout is redeemed
+message PayoutRedemption {
+  bytes redeemer = 1; // address
+  bytes collateral_token = 2; // address
+  bytes parent_collection_id = 3; // bytes32
+  bytes condition_id = 4; // bytes32
+  repeated string index_sets = 5; // uint256[]
+  string payout = 6; // uint256
+}

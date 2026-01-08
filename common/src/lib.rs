@@ -81,3 +81,8 @@ mod negriskadapter_impl {
     use super::*;
     impl_create_log_and_transaction!(proto::pb::negriskadapter::v1);
 }
+
+mod conditionaltokens_impl {
+    use super::*;
+    impl_create_log_and_transaction!(proto::pb::conditionaltokens::v1);
+}

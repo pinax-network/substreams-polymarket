@@ -1,4 +1,11 @@
 // @generated
+pub mod conditionaltokens {
+    // @@protoc_insertion_point(attribute:conditionaltokens.v1)
+    pub mod v1 {
+        include!("conditionaltokens.v1.rs");
+        // @@protoc_insertion_point(conditionaltokens.v1)
+    }
+}
 pub mod erc1155 {
     // @@protoc_insertion_point(attribute:erc1155.v1)
     pub mod v1 {
