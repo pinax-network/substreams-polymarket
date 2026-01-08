@@ -86,3 +86,8 @@ mod conditionaltokens_impl {
     use super::*;
     impl_create_log_and_transaction!(proto::pb::conditionaltokens::v1);
 }
+
+mod safeproxyfactory_impl {
+    use super::*;
+    impl_create_log_and_transaction!(proto::pb::safeproxyfactory::v1);
+}

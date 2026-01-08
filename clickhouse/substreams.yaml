@@ -17,6 +17,7 @@ imports:
   umactfadapter: ../umactfadapter/substreams.yaml
   negriskadapter: ../negriskadapter/substreams.yaml
   conditionaltokens: ../conditionaltokens/substreams.yaml
+  safeproxyfactory: ../safeproxyfactory/substreams.yaml
 
 binaries:
   default:
@@ -32,6 +33,7 @@ modules:
       - map: umactfadapter:map_events
       - map: negriskadapter:map_events
       - map: conditionaltokens:map_events
+      - map: safeproxyfactory:map_events
     output:
       type: proto:sf.substreams.sink.database.v1.DatabaseChanges
 
