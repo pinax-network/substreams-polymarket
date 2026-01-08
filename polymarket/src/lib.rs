@@ -1,7 +1,7 @@
 mod store;
 use common::{CreateLog, CreateTransaction};
 use proto::pb::polymarket::v1 as pb;
-use substreams_abis::evm::polymarket::cftexchange as polymarket;
+use substreams_abis::evm::polymarket::ctfexchange as polymarket;
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 
