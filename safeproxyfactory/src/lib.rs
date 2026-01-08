@@ -106,7 +106,7 @@ fn decode_proxy_creation(log: &Log) -> Option<pb::ProxyCreation> {
     if log.data.len() < 32 {
         return None;
     }
-    let singleton = log.data[12..32].to_vec(); // address is last 20 bytes of 32-byte word
+    let singleton = extract_address_from_bytes(&log.data[0..32]);
 
     Some(pb::ProxyCreation { proxy, singleton })
 }
@@ -128,7 +128,7 @@ fn decode_proxy_creation_l2(log: &Log) -> Option<pb::ProxyCreationL2> {
         return None;
     }
 
-    let singleton = log.data[12..32].to_vec();
+    let singleton = extract_address_from_bytes(&log.data[0..32]);
 
     // The rest of the data contains initializer and saltNonce (ABI encoded)
     // For now, decode the dynamic bytes and uint256
@@ -136,15 +136,7 @@ fn decode_proxy_creation_l2(log: &Log) -> Option<pb::ProxyCreationL2> {
     let mut offset = 32;
 
     // Read offset to initializer
-    if log.data.len() < offset + 32 {
-        return None;
-    }
-    let initializer_offset = u32::from_be_bytes([
-        log.data[offset + 28],
-        log.data[offset + 29],
-        log.data[offset + 30],
-        log.data[offset + 31],
-    ]) as usize;
+    let initializer_offset = read_u32_from_offset(&log.data, offset)? as usize;
     offset += 32;
 
     // Read saltNonce
@@ -158,12 +150,7 @@ fn decode_proxy_creation_l2(log: &Log) -> Option<pb::ProxyCreationL2> {
     if log.data.len() < initializer_offset + 32 {
         return None;
     }
-    let initializer_length = u32::from_be_bytes([
-        log.data[initializer_offset + 28],
-        log.data[initializer_offset + 29],
-        log.data[initializer_offset + 30],
-        log.data[initializer_offset + 31],
-    ]) as usize;
+    let initializer_length = read_u32_from_offset(&log.data, initializer_offset)? as usize;
 
     // Read initializer data
     let initializer_start = initializer_offset + 32;
@@ -197,21 +184,13 @@ fn decode_chain_specific_proxy_creation_l2(log: &Log) -> Option<pb::ChainSpecifi
         return None;
     }
 
-    let singleton = log.data[12..32].to_vec();
+    let singleton = extract_address_from_bytes(&log.data[0..32]);
 
     // The rest contains initializer, saltNonce, chainId
     let mut offset = 32;
 
     // Read offset to initializer
-    if log.data.len() < offset + 32 {
-        return None;
-    }
-    let initializer_offset = u32::from_be_bytes([
-        log.data[offset + 28],
-        log.data[offset + 29],
-        log.data[offset + 30],
-        log.data[offset + 31],
-    ]) as usize;
+    let initializer_offset = read_u32_from_offset(&log.data, offset)? as usize;
     offset += 32;
 
     // Read saltNonce
@@ -233,12 +212,7 @@ fn decode_chain_specific_proxy_creation_l2(log: &Log) -> Option<pb::ChainSpecifi
     if log.data.len() < initializer_offset + 32 {
         return None;
     }
-    let initializer_length = u32::from_be_bytes([
-        log.data[initializer_offset + 28],
-        log.data[initializer_offset + 29],
-        log.data[initializer_offset + 30],
-        log.data[initializer_offset + 31],
-    ]) as usize;
+    let initializer_length = read_u32_from_offset(&log.data, initializer_offset)? as usize;
 
     // Read initializer data
     let initializer_start = initializer_offset + 32;
@@ -254,4 +228,27 @@ fn decode_chain_specific_proxy_creation_l2(log: &Log) -> Option<pb::ChainSpecifi
         salt_nonce,
         chain_id,
     })
+}
+
+// Helper functions
+
+fn extract_address_from_bytes(data: &[u8]) -> Vec<u8> {
+    // Address is padded to 32 bytes, actual address is in last 20 bytes
+    if data.len() >= 32 {
+        data[12..32].to_vec()
+    } else {
+        data.to_vec()
+    }
+}
+
+fn read_u32_from_offset(data: &[u8], offset: usize) -> Option<u32> {
+    if data.len() < offset + 32 {
+        return None;
+    }
+    Some(u32::from_be_bytes([
+        data[offset + 28],
+        data[offset + 29],
+        data[offset + 30],
+        data[offset + 31],
+    ]))
 }
