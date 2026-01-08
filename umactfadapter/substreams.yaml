@@ -1,0 +1,28 @@
+specVersion: v0.1.0
+package:
+  name: umactfadapter
+  version: v0.1.0
+  url: https://github.com/pinax-network/substreams-polymarket
+  description: UmaCtfAdapter events substreams package
+  image: ../image.png
+
+protobuf:
+  files:
+    - umactfadapter.proto
+  importPaths:
+    - ../proto/v1
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ../target/wasm32-unknown-unknown/release/umactfadapter.wasm
+
+modules:
+  - name: map_events
+    kind: map
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:umactfadapter.v1.Events
+
+network: polygon

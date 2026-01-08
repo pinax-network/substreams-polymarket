@@ -71,3 +71,8 @@ mod erc1155_impl {
     use super::*;
     impl_create_log_and_transaction!(proto::pb::erc1155::v1);
 }
+
+mod umactfadapter_impl {
+    use super::*;
+    impl_create_log_and_transaction!(proto::pb::umactfadapter::v1);
+}

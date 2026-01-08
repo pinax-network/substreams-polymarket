@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package umactfadapter.v1;
+
+message Events { repeated Transaction transactions = 1; }
+
+message Transaction {
+  bytes hash = 1;
+  bytes from = 2;
+  optional bytes to = 3;
+  uint64 nonce = 5;
+  string gas_price = 6; // uint256
+  uint64 gas_limit = 7;
+  uint64 gas_used = 8;
+  string value = 9; // uint256
+  repeated Log logs = 10;
+}
+
+// UmaCtfAdapter events (V2 & V3 combined)
+message Log {
+  bytes address = 1;
+  uint64 ordinal = 2;
+  repeated bytes topics = 3;
+  bytes data = 4;
+  oneof log {
+    // UmaCtfAdapter events
+    AncillaryDataUpdated ancillary_data_updated = 10;
+    NewAdmin new_admin = 11;
+    QuestionEmergencyResolved question_emergency_resolved = 12;
+    QuestionFlagged question_flagged = 13;
+    QuestionInitialized question_initialized = 14;
+    QuestionPaused question_paused = 15;
+    QuestionReset question_reset = 16;
+    QuestionResolved question_resolved = 17;
+    QuestionUnpaused question_unpaused = 18;
+    RemovedAdmin removed_admin = 19;
+    // V3 only
+    QuestionUnflagged question_unflagged = 20;
+  }
+}
+
+// AncillaryDataUpdated event
+message AncillaryDataUpdated {
+  bytes question_id = 1; // bytes32
+  bytes owner = 2; // address
+  bytes update = 3; // bytes
+}
+
+// NewAdmin event
+message NewAdmin {
+  bytes admin = 1; // address
+  bytes new_admin_address = 2; // address
+}
+
+// QuestionEmergencyResolved event
+message QuestionEmergencyResolved {
+  bytes question_id = 1; // bytes32
+  repeated string payouts = 2; // uint256[]
+}
+
+// QuestionFlagged event
+message QuestionFlagged {
+  bytes question_id = 1; // bytes32
+}
+
+// QuestionInitialized event
+message QuestionInitialized {
+  bytes question_id = 1; // bytes32
+  string request_timestamp = 2; // uint256
+  bytes creator = 3; // address
+  bytes ancillary_data = 4; // bytes
+  bytes reward_token = 5; // address
+  string reward = 6; // uint256
+  string proposal_bond = 7; // uint256
+}
+
+// QuestionPaused event
+message QuestionPaused {
+  bytes question_id = 1; // bytes32
+}
+
+// QuestionReset event
+message QuestionReset {
+  bytes question_id = 1; // bytes32
+}
+
+// QuestionResolved event
+message QuestionResolved {
+  bytes question_id = 1; // bytes32
+  string settled_price = 2; // int256
+  repeated string payouts = 3; // uint256[]
+}
+
+// QuestionUnpaused event
+message QuestionUnpaused {
+  bytes question_id = 1; // bytes32
+}
+
+// RemovedAdmin event
+message RemovedAdmin {
+  bytes admin = 1; // address
+  bytes removed_admin = 2; // address
+}
+
+// QuestionUnflagged event (V3 only)
+message QuestionUnflagged {
+  bytes question_id = 1; // bytes32
+}
