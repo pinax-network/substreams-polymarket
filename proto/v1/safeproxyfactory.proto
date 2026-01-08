@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package safeproxyfactory.v1;
+
+message Events { repeated Transaction transactions = 1; }
+
+message Transaction {
+  bytes hash = 1;
+  bytes from = 2;
+  optional bytes to = 3;
+  uint64 nonce = 5;
+  string gas_price = 6; // uint256
+  uint64 gas_limit = 7;
+  uint64 gas_used = 8;
+  string value = 9; // uint256
+  repeated Log logs = 10;
+}
+
+// https://github.com/safe-global/safe-contracts/blob/main/contracts/proxies/SafeProxyFactory.sol
+message Log {
+  bytes address = 1;
+  uint64 ordinal = 2;
+  repeated bytes topics = 3;
+  bytes data = 4;
+  oneof log {
+    // events
+    ProxyCreation proxy_creation = 10;
+    ProxyCreationL2 proxy_creation_l2 = 11;
+    ChainSpecificProxyCreationL2 chain_specific_proxy_creation_l2 = 12;
+  }
+}
+
+message ProxyCreation {
+  bytes proxy = 10; // address
+  bytes singleton = 11; // address
+}
+
+message ProxyCreationL2 {
+  bytes proxy = 10; // address
+  bytes singleton = 11; // address
+  bytes initializer = 12; // bytes
+  string salt_nonce = 13; // uint256
+}
+
+message ChainSpecificProxyCreationL2 {
+  bytes proxy = 10; // address
+  bytes singleton = 11; // address
+  bytes initializer = 12; // bytes
+  string salt_nonce = 13; // uint256
+  string chain_id = 14; // uint256
+}

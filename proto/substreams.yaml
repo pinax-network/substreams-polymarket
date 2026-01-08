@@ -7,6 +7,7 @@ protobuf:
   files:
     - v1/polymarket.proto
     - v1/erc1155.proto
+    - v1/safeproxyfactory.proto
 
   excludePaths:
     - sf/substreams
