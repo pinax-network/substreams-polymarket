@@ -12,6 +12,7 @@ imports:
   sql: ./packages/substreams-sink-sql-protodefs-v1.0.7.spkg
 
   # Events
+  erc1155: ../erc1155/substreams.yaml
   polymarket: ../polymarket/substreams.yaml
 
 binaries:
@@ -24,6 +25,7 @@ modules:
     inputs:
       - source: sf.substreams.v1.Clock
       - map: polymarket:map_events
+      - map: erc1155:map_events
     output:
       type: proto:sf.substreams.sink.database.v1.DatabaseChanges
 
