@@ -34,3 +34,10 @@ pub mod umactfadapter {
         // @@protoc_insertion_point(umactfadapter.v1)
     }
 }
+pub mod safeproxyfactory {
+    // @@protoc_insertion_point(attribute:safeproxyfactory.v1)
+    pub mod v1 {
+        include!("safeproxyfactory.v1.rs");
+        // @@protoc_insertion_point(safeproxyfactory.v1)
+    }
+}
