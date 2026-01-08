@@ -101,7 +101,7 @@ fn decode_proxy_creation(log: &Log) -> Option<pb::ProxyCreation> {
         return None;
     }
 
-    let proxy = log.topics[1][12..32].to_vec(); // address is last 20 bytes of 32-byte word
+    let proxy = extract_address_from_topic(&log.topics[1]);
     
     if log.data.len() < 32 {
         return None;
@@ -115,13 +115,13 @@ fn decode_proxy_creation_l2(log: &Log) -> Option<pb::ProxyCreationL2> {
     // ProxyCreationL2(address indexed proxy, address singleton, bytes initializer, uint256 saltNonce)
     // topic[0]: event signature
     // topic[1]: proxy (indexed)
-    // data: singleton, initializer, saltNonce (ABI encoded)
+    // data: singleton, initializer offset, saltNonce (ABI encoded)
 
     if log.topics.len() < 2 {
         return None;
     }
 
-    let proxy = log.topics[1][12..32].to_vec(); // address is last 20 bytes of 32-byte word
+    let proxy = extract_address_from_topic(&log.topics[1]);
 
     // Parse ABI-encoded data
     if log.data.len() < 32 {
@@ -130,12 +130,10 @@ fn decode_proxy_creation_l2(log: &Log) -> Option<pb::ProxyCreationL2> {
 
     let singleton = extract_address_from_bytes(&log.data[0..32]);
 
-    // The rest of the data contains initializer and saltNonce (ABI encoded)
-    // For now, decode the dynamic bytes and uint256
-    // This is simplified - full ABI decoding would be more complex
+    // The rest of the data contains initializer offset and saltNonce
     let mut offset = 32;
 
-    // Read offset to initializer
+    // Read offset to initializer (position in data where bytes start)
     let initializer_offset = read_u32_from_offset(&log.data, offset)? as usize;
     offset += 32;
 
@@ -146,7 +144,7 @@ fn decode_proxy_creation_l2(log: &Log) -> Option<pb::ProxyCreationL2> {
     let salt_nonce_bytes = &log.data[offset..offset + 32];
     let salt_nonce = Hex::encode(salt_nonce_bytes);
 
-    // Read initializer length
+    // Read initializer length at the offset position
     if log.data.len() < initializer_offset + 32 {
         return None;
     }
@@ -171,13 +169,13 @@ fn decode_chain_specific_proxy_creation_l2(log: &Log) -> Option<pb::ChainSpecifi
     // ChainSpecificProxyCreationL2(address indexed proxy, address singleton, bytes initializer, uint256 saltNonce, uint256 chainId)
     // topic[0]: event signature
     // topic[1]: proxy (indexed)
-    // data: singleton, initializer, saltNonce, chainId (ABI encoded)
+    // data: singleton, initializer offset, saltNonce, chainId (ABI encoded)
 
     if log.topics.len() < 2 {
         return None;
     }
 
-    let proxy = log.topics[1][12..32].to_vec(); // address is last 20 bytes of 32-byte word
+    let proxy = extract_address_from_topic(&log.topics[1]);
 
     // Parse ABI-encoded data
     if log.data.len() < 32 {
@@ -186,10 +184,10 @@ fn decode_chain_specific_proxy_creation_l2(log: &Log) -> Option<pb::ChainSpecifi
 
     let singleton = extract_address_from_bytes(&log.data[0..32]);
 
-    // The rest contains initializer, saltNonce, chainId
+    // The rest contains initializer offset, saltNonce, chainId
     let mut offset = 32;
 
-    // Read offset to initializer
+    // Read offset to initializer (position in data where bytes start)
     let initializer_offset = read_u32_from_offset(&log.data, offset)? as usize;
     offset += 32;
 
@@ -208,7 +206,7 @@ fn decode_chain_specific_proxy_creation_l2(log: &Log) -> Option<pb::ChainSpecifi
     let chain_id_bytes = &log.data[offset..offset + 32];
     let chain_id = Hex::encode(chain_id_bytes);
 
-    // Read initializer length
+    // Read initializer length at the offset position
     if log.data.len() < initializer_offset + 32 {
         return None;
     }
@@ -231,6 +229,15 @@ fn decode_chain_specific_proxy_creation_l2(log: &Log) -> Option<pb::ChainSpecifi
 }
 
 // Helper functions
+
+fn extract_address_from_topic(topic: &[u8]) -> Vec<u8> {
+    // Address is in the last 20 bytes of a 32-byte topic
+    if topic.len() >= 32 {
+        topic[12..32].to_vec()
+    } else {
+        topic.to_vec()
+    }
+}
 
 fn extract_address_from_bytes(data: &[u8]) -> Vec<u8> {
     // Address is padded to 32 bytes, actual address is in last 20 bytes
