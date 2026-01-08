@@ -13,6 +13,13 @@ pub mod erc1155 {
         // @@protoc_insertion_point(erc1155.v1)
     }
 }
+pub mod feemodule {
+    // @@protoc_insertion_point(attribute:feemodule.v1)
+    pub mod v1 {
+        include!("feemodule.v1.rs");
+        // @@protoc_insertion_point(feemodule.v1)
+    }
+}
 pub mod negriskadapter {
     // @@protoc_insertion_point(attribute:negriskadapter.v1)
     pub mod v1 {

@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package feemodule.v1;
+
+message Events { repeated Transaction transactions = 1; }
+
+message Transaction {
+  bytes hash = 1;
+  bytes from = 2;
+  optional bytes to = 3;
+  uint64 nonce = 5;
+  string gas_price = 6; // uint256
+  uint64 gas_limit = 7;
+  uint64 gas_used = 8;
+  string value = 9; // uint256
+  repeated Log logs = 10;
+}
+
+// FeeModule events
+message Log {
+  bytes address = 1;
+  uint64 ordinal = 2;
+  repeated bytes topics = 3;
+  bytes data = 4;
+  oneof log {
+    // FeeModule events
+    FeeRefunded fee_refunded = 10;
+    FeeWithdrawn fee_withdrawn = 11;
+    NewAdmin new_admin = 12;
+    RemovedAdmin removed_admin = 13;
+  }
+}
+
+// FeeRefunded event
+message FeeRefunded {
+  bytes order_hash = 1; // bytes32
+  bytes to = 2; // address
+  string id = 3; // uint256
+  string refund = 4; // uint256
+  string fee_charged = 5; // uint256
+}
+
+// FeeWithdrawn event
+message FeeWithdrawn {
+  bytes token = 1; // address
+  bytes to = 2; // address
+  string id = 3; // uint256
+  string amount = 4; // uint256
+}
+
+// NewAdmin event
+message NewAdmin {
+  bytes admin = 1; // address
+  bytes new_admin_address = 2; // address
+}
+
+// RemovedAdmin event
+message RemovedAdmin {
+  bytes admin = 1; // address
+  bytes removed_admin = 2; // address
+}

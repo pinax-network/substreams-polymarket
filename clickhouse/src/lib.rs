@@ -1,6 +1,7 @@
 mod conditionaltokens;
 mod ctfexchange;
 mod erc1155;
+mod feemodule;
 mod logs;
 mod negriskadapter;
 mod safeproxyfactory;
@@ -19,6 +20,7 @@ pub fn db_out(
     events_negriskadapter: proto::pb::negriskadapter::v1::Events,
     events_conditionaltokens: proto::pb::conditionaltokens::v1::Events,
     events_safeproxyfactory: proto::pb::safeproxyfactory::v1::Events,
+    events_feemodule: proto::pb::feemodule::v1::Events,
 ) -> Result<DatabaseChanges, Error> {
     let mut tables = substreams_database_change::tables::Tables::new();
 
@@ -28,6 +30,7 @@ pub fn db_out(
     negriskadapter::process_events(&mut tables, &clock, &events_negriskadapter);
     conditionaltokens::process_events(&mut tables, &clock, &events_conditionaltokens);
     safeproxyfactory::process_events(&mut tables, &clock, &events_safeproxyfactory);
+    feemodule::process_events(&mut tables, &clock, &events_feemodule);
 
     // ONLY include blocks if events are present
     if !tables.tables.is_empty() {

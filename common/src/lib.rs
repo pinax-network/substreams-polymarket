@@ -91,3 +91,8 @@ mod safeproxyfactory_impl {
     use super::*;
     impl_create_log_and_transaction!(proto::pb::safeproxyfactory::v1);
 }
+
+mod feemodule_impl {
+    use super::*;
+    impl_create_log_and_transaction!(proto::pb::feemodule::v1);
+}

@@ -18,6 +18,7 @@ imports:
   negriskadapter: ../negriskadapter/substreams.yaml
   conditionaltokens: ../conditionaltokens/substreams.yaml
   safeproxyfactory: ../safeproxyfactory/substreams.yaml
+  feemodule: ../feemodule/substreams.yaml
 
 binaries:
   default:
@@ -34,6 +35,7 @@ modules:
       - map: negriskadapter:map_events
       - map: conditionaltokens:map_events
       - map: safeproxyfactory:map_events
+      - map: feemodule:map_events
     output:
       type: proto:sf.substreams.sink.database.v1.DatabaseChanges
 
