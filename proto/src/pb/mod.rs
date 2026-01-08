@@ -13,6 +13,20 @@ pub mod erc1155 {
         // @@protoc_insertion_point(erc1155.v1)
     }
 }
+pub mod erc20transfers {
+    // @@protoc_insertion_point(attribute:erc20transfers.v1)
+    pub mod v1 {
+        include!("erc20transfers.v1.rs");
+        // @@protoc_insertion_point(erc20transfers.v1)
+    }
+}
+pub mod erc20balances {
+    // @@protoc_insertion_point(attribute:erc20balances.v1)
+    pub mod v1 {
+        include!("erc20balances.v1.rs");
+        // @@protoc_insertion_point(erc20balances.v1)
+    }
+}
 pub mod feemodule {
     // @@protoc_insertion_point(attribute:feemodule.v1)
     pub mod v1 {

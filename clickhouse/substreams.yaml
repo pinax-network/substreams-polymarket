@@ -13,6 +13,8 @@ imports:
 
   # Events
   erc1155: ../erc1155/substreams.yaml
+  erc20transfers: ../erc20transfers/substreams.yaml
+  erc20balances: ../erc20balances/substreams.yaml
   polymarket: ../polymarket/substreams.yaml
   umactfadapter: ../umactfadapter/substreams.yaml
   negriskadapter: ../negriskadapter/substreams.yaml
@@ -31,6 +33,8 @@ modules:
       - source: sf.substreams.v1.Clock
       - map: polymarket:map_events
       - map: erc1155:map_events
+      - map: erc20transfers:map_events
+      - map: erc20balances:map_events
       - map: umactfadapter:map_events
       - map: negriskadapter:map_events
       - map: conditionaltokens:map_events

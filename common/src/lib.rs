@@ -96,3 +96,8 @@ mod feemodule_impl {
     use super::*;
     impl_create_log_and_transaction!(proto::pb::feemodule::v1);
 }
+
+mod erc20transfers_impl {
+    use super::*;
+    impl_create_log_and_transaction!(proto::pb::erc20transfers::v1);
+}

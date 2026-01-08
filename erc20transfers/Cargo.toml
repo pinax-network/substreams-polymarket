@@ -1,0 +1,17 @@
+[package]
+name = "erc20transfers"
+description = "ERC-20 & WETH Events substreams package"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = ["Denis <denis@pinax.network>"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+substreams = { workspace = true }
+substreams-ethereum = { workspace = true }
+substreams-abis = { workspace = true }
+proto = { path = "../proto" }
+common = { path = "../common" }
