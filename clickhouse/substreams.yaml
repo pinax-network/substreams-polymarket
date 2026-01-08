@@ -16,6 +16,7 @@ imports:
   polymarket: ../polymarket/substreams.yaml
   umactfadapter: ../umactfadapter/substreams.yaml
   negriskadapter: ../negriskadapter/substreams.yaml
+  conditionaltokens: ../conditionaltokens/substreams.yaml
 
 binaries:
   default:
@@ -30,6 +31,7 @@ modules:
       - map: erc1155:map_events
       - map: umactfadapter:map_events
       - map: negriskadapter:map_events
+      - map: conditionaltokens:map_events
     output:
       type: proto:sf.substreams.sink.database.v1.DatabaseChanges
 
