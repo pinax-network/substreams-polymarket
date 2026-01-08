@@ -15,3 +15,23 @@
 - [ ] Activity
 - [ ] Open Interest
 - [ ] PNL
+
+| Smart contract name                                 | EVM address                                |
+| --------------------------------------------------- | ------------------------------------------ |
+| USDC (collateral)                                   | 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174 |
+| Conditional Tokens (CTF / ERC-1155)                 | 0x4d97dcd97ec945f40cf65f87097ace5ea0476045 |
+| CTF Exchange (CTFExchange)                          | 0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E |
+| Neg Risk CTF Exchange (NegRiskCTFExchange)          | 0xC5d563A36AE78145C45a50134d48A1215220f80a |
+| Neg Risk Adapter (current)                          | 0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296 |
+| Proxy Wallet Factory                                | 0xaB45c5A4B0c941a2F231C04C3f49182e1A254052 |
+| Safe Factory                                        | 0xaacfeea03eb1561c4e67d661e40682bd20e3541b |
+| FeeModule (CTF Exchange fee module, v2)             | 0xE3f18aCc55091e2c48d883fc8C8413319d4Ab7b0 |
+| FeeModule (CTF Exchange fee module, v0.0.1 / older) | 0x56C79347e95530c01A2FC76E732f9566dA16E113 |
+| NegRiskFeeModule (v2)                               | 0xb768891e3130f6df18214ac804d4db76c2c37730 |
+| NegRiskFeeModule (v1 / older)                       | 0x78769D50Be1763ed1CA0D5E878D93f05aabff29e |
+| NegRiskOperator                                     | 0xf09a3e199e815e1b5d0bf1ef45006875009edb04 |
+| NegRiskAdapter (early/legacy deployment)            | 0xf16a3BdFFB7B882E3236243E901f6c5953E2EE0d |
+| UmaCtfAdapter v3.0 (one deployment)                 | 0x157Ce2d6722d7a6d8b1990F60f2eA59323D20f91 |
+| UmaCtfAdapter v2.0                                  | 0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74 |
+| UmaCtfAdapter v1.0                                  | 0xCB1822859cEF82Cd2Eb4E6276C7916e692995130 |
+| NegRisk UmaCtfAdapter (separate deployment)         | 0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d |

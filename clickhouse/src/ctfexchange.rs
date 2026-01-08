@@ -72,7 +72,7 @@ fn process_order_filled(
     event: &polymarket::OrderFilled,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("order_filled", key);
+    let row = tables.create_row("ctfexchange_order_filled", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -98,7 +98,7 @@ fn process_fee_charged(
     event: &polymarket::FeeCharged,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("fee_charged", key);
+    let row = tables.create_row("ctfexchange_fee_charged", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -119,7 +119,7 @@ fn process_new_admin(
     event: &polymarket::NewAdmin,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("new_admin", key);
+    let row = tables.create_row("ctfexchange_new_admin", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -139,7 +139,7 @@ fn process_new_operator(
     event: &polymarket::NewOperator,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("new_operator", key);
+    let row = tables.create_row("ctfexchange_new_operator", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -162,7 +162,7 @@ fn process_order_cancelled(
     event: &polymarket::OrderCancelled,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("order_cancelled", key);
+    let row = tables.create_row("ctfexchange_order_cancelled", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -181,7 +181,7 @@ fn process_orders_matched(
     event: &polymarket::OrdersMatched,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("orders_matched", key);
+    let row = tables.create_row("ctfexchange_orders_matched", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -205,7 +205,7 @@ fn process_proxy_factory_updated(
     event: &polymarket::ProxyFactoryUpdated,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("proxy_factory_updated", key);
+    let row = tables.create_row("ctfexchange_proxy_factory_updated", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -225,7 +225,7 @@ fn process_removed_admin(
     event: &polymarket::RemovedAdmin,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("removed_admin", key);
+    let row = tables.create_row("ctfexchange_removed_admin", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -245,7 +245,7 @@ fn process_removed_operator(
     event: &polymarket::RemovedOperator,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("removed_operator", key);
+    let row = tables.create_row("ctfexchange_removed_operator", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -265,7 +265,7 @@ fn process_safe_factory_updated(
     event: &polymarket::SafeFactoryUpdated,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("safe_factory_updated", key);
+    let row = tables.create_row("ctfexchange_safe_factory_updated", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -285,7 +285,7 @@ fn process_token_registered(
     event: &polymarket::TokenRegistered,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("token_registered", key);
+    let row = tables.create_row("ctfexchange_token_registered", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -306,7 +306,7 @@ fn process_trading_paused(
     event: &polymarket::TradingPaused,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("trading_paused", key);
+    let row = tables.create_row("ctfexchange_trading_paused", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
@@ -325,7 +325,7 @@ fn process_trading_unpaused(
     event: &polymarket::TradingUnpaused,
 ) {
     let key = log_key(clock);
-    let row = tables.create_row("trading_unpaused", key);
+    let row = tables.create_row("ctfexchange_trading_unpaused", key);
 
     set_clock(clock, row);
     set_template_tx(tx, tx_index, row);
