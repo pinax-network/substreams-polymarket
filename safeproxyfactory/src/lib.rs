@@ -44,7 +44,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
             };
 
             // ProxyCreation event
-            if topic0 == PROXY_CREATION_TOPIC && log.topics.len() >= 1 {
+            if topic0 == PROXY_CREATION_TOPIC && log.topics.len() >= 2 {
                 if let Some(event) = decode_proxy_creation(log) {
                     total_proxy_creation += 1;
                     let event = pb::log::Log::ProxyCreation(event);
@@ -54,7 +54,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
             }
 
             // ProxyCreationL2 event
-            if topic0 == PROXY_CREATION_L2_TOPIC && log.topics.len() >= 1 {
+            if topic0 == PROXY_CREATION_L2_TOPIC && log.topics.len() >= 2 {
                 if let Some(event) = decode_proxy_creation_l2(log) {
                     total_proxy_creation_l2 += 1;
                     let event = pb::log::Log::ProxyCreationL2(event);
@@ -64,7 +64,7 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
             }
 
             // ChainSpecificProxyCreationL2 event
-            if topic0 == CHAIN_SPECIFIC_PROXY_CREATION_L2_TOPIC && log.topics.len() >= 1 {
+            if topic0 == CHAIN_SPECIFIC_PROXY_CREATION_L2_TOPIC && log.topics.len() >= 2 {
                 if let Some(event) = decode_chain_specific_proxy_creation_l2(log) {
                     total_chain_specific_proxy_creation_l2 += 1;
                     let event = pb::log::Log::ChainSpecificProxyCreationL2(event);
