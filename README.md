@@ -31,7 +31,6 @@
 | NegRiskFeeModule (v1 / older)                       | 0x78769D50Be1763ed1CA0D5E878D93f05aabff29e |
 | NegRiskOperator                                     | 0xf09a3e199e815e1b5d0bf1ef45006875009edb04 |
 | NegRiskAdapter (early/legacy deployment)            | 0xf16a3BdFFB7B882E3236243E901f6c5953E2EE0d |
-| UmaCtfAdapter v3.0 (one deployment)                 | 0x157Ce2d6722d7a6d8b1990F60f2eA59323D20f91 |
+| UmaCtfAdapter v3.0 (one deployment)                 | 0x2f5e3684cb1f318ec51b00edba38d79ac2c0aa9d |
 | UmaCtfAdapter v2.0                                  | 0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74 |
-| UmaCtfAdapter v1.0                                  | 0xCB1822859cEF82Cd2Eb4E6276C7916e692995130 |
 | NegRisk UmaCtfAdapter (separate deployment)         | 0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d |
