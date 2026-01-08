@@ -1,6 +1,5 @@
+use common::bytes_to_hex;
 use proto::pb::polymarket;
-
-use crate::common::bytes_to_hex;
 
 pub fn set_template_tx(
     tx: &polymarket::v1::Transaction,

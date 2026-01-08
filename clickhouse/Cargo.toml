@@ -14,3 +14,4 @@ substreams-database-change = { workspace = true }
 prost = { workspace = true }
 prost-types = { workspace = true }
 proto = { path = "../proto" }
+common = { path = "../common" }

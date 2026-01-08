@@ -1,8 +1,8 @@
+use common::bytes_to_hex;
 use proto::pb::polymarket::v1 as polymarket;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::tables::Tables;
 
-use crate::common::bytes_to_hex;
 use crate::{
     logs::{log_key, set_template_log},
     set_clock,

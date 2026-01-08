@@ -1,7 +1,6 @@
+use common::bytes_to_hex;
 use proto::pb::polymarket;
 use substreams::pb::substreams::Clock;
-
-use crate::common::bytes_to_hex;
 
 pub fn log_key(clock: &Clock) -> [(&'static str, String); 3] {
     let seconds = clock

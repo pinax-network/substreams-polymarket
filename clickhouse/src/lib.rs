@@ -1,4 +1,3 @@
-mod common;
 mod events;
 mod logs;
 mod transactions;
