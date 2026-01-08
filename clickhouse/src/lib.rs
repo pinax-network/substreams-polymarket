@@ -1,6 +1,7 @@
 mod conditionaltokens;
 mod ctfexchange;
 mod erc1155;
+mod erc20transfers;
 mod feemodule;
 mod logs;
 mod negriskadapter;
@@ -16,6 +17,7 @@ pub fn db_out(
     clock: Clock,
     events_polymarket: proto::pb::polymarket::v1::Events,
     events_erc1155: proto::pb::erc1155::v1::Events,
+    events_erc20transfers: proto::pb::erc20transfers::v1::Events,
     events_umactfadapter: proto::pb::umactfadapter::v1::Events,
     events_negriskadapter: proto::pb::negriskadapter::v1::Events,
     events_conditionaltokens: proto::pb::conditionaltokens::v1::Events,
@@ -26,6 +28,7 @@ pub fn db_out(
 
     ctfexchange::process_events(&mut tables, &clock, &events_polymarket);
     erc1155::process_events(&mut tables, &clock, &events_erc1155);
+    erc20transfers::process_events(&mut tables, &clock, &events_erc20transfers);
     umactfadapter::process_events(&mut tables, &clock, &events_umactfadapter);
     negriskadapter::process_events(&mut tables, &clock, &events_negriskadapter);
     conditionaltokens::process_events(&mut tables, &clock, &events_conditionaltokens);

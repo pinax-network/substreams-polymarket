@@ -1,5 +1,5 @@
 [workspace]
-members = ["clickhouse", "polymarket", "erc1155", "common", "proto", "umactfadapter", "negriskadapter", "conditionaltokens", "safeproxyfactory", "feemodule"]
+members = ["clickhouse", "polymarket", "erc1155", "erc20transfers", "common", "proto", "umactfadapter", "negriskadapter", "conditionaltokens", "safeproxyfactory", "feemodule"]
 resolver = "2"
 
 [workspace.package]

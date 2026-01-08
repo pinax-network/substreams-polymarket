@@ -1,0 +1,28 @@
+specVersion: v0.1.0
+package:
+  name: erc20transfers
+  version: v0.1.0
+  url: https://github.com/pinax-network/substreams-polymarket
+  description: ERC-20 & WETH Events substreams package
+  image: ../image.png
+
+protobuf:
+  files:
+    - erc20transfers.proto
+  importPaths:
+    - ../proto/v1
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ../target/wasm32-unknown-unknown/release/erc20transfers.wasm
+
+modules:
+  - name: map_events
+    kind: map
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:erc20transfers.v1.Events
+
+network: mainnet
