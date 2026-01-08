@@ -61,9 +61,9 @@ pub mod log {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProxyCreation {
     /// address - The address of the created proxy
-    #[prost(bytes="vec", tag="10")]
+    #[prost(bytes="vec", tag="1")]
     pub proxy: ::prost::alloc::vec::Vec<u8>,
     /// address - The owner of the created proxy
-    #[prost(bytes="vec", tag="11")]
+    #[prost(bytes="vec", tag="2")]
     pub owner: ::prost::alloc::vec::Vec<u8>,
 }

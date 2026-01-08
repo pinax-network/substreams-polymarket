@@ -32,6 +32,6 @@ message Log {
 // ProxyCreation event
 // Emitted when a new Safe proxy is created
 message ProxyCreation {
-  bytes proxy = 10; // address - The address of the created proxy
-  bytes owner = 11; // address - The owner of the created proxy
+  bytes proxy = 1; // address - The address of the created proxy
+  bytes owner = 2; // address - The owner of the created proxy
 }
