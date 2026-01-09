@@ -1,5 +1,5 @@
 [package]
-name = "feemodule"
+name = "fee-module"
 description = "FeeModule events substreams package"
 version = { workspace = true }
 edition = { workspace = true }

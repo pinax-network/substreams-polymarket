@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package conditionaltokens.v1;
+package conditional_tokens.v1;
 
 message Events { repeated Transaction transactions = 1; }
 

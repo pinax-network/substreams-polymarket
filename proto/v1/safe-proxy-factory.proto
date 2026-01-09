@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package safeproxyfactory.v1;
+package safe_proxy_factory.v1;
 
 message Events { repeated Transaction transactions = 1; }
 

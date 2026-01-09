@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package erc20balances.v1;
+package erc20.balances.v1;
 
 message Events { repeated Balance balances = 1; }
 

@@ -1,10 +1,9 @@
 [package]
-name = "erc20balances"
-description = "ERC-20 Balances via RPC substreams package"
+name = "conditional-tokens"
+description = "ConditionalTokens events substreams package"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
-authors = ["Denis <denis@pinax.network>"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -12,6 +11,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 substreams = { workspace = true }
 substreams-ethereum = { workspace = true }
-substreams-abis = { workspace = true }
 proto = { path = "../proto" }
 common = { path = "../common" }
+hex-literal = "0.4"
+primitive-types = "0.12"

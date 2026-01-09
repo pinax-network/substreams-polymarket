@@ -29,7 +29,7 @@ modules:
     output:
       type: proto:erc20balances.v1.Events
 
-network: mainnet
+network: polygon
 
 params:
   map_events: 100 # CHUNK_SIZE (Batch RPC Calls)

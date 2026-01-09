@@ -1,6 +1,6 @@
 specVersion: v0.1.0
 package:
-  name: conditionaltokens
+  name: conditional_tokens
   version: v0.1.0
   url: https://github.com/pinax-network/substreams-polymarket
   description: ConditionalTokens events substreams package
@@ -8,14 +8,14 @@ package:
 
 protobuf:
   files:
-    - conditionaltokens.proto
+    - conditional-tokens.proto
   importPaths:
     - ../proto/v1
 
 binaries:
   default:
     type: wasm/rust-v1
-    file: ../target/wasm32-unknown-unknown/release/conditionaltokens.wasm
+    file: ../target/wasm32-unknown-unknown/release/conditional_tokens.wasm
 
 modules:
   - name: map_events
@@ -24,6 +24,6 @@ modules:
       - params: string
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:conditionaltokens.v1.Events
+      type: proto:conditional_tokens.v1.Events
 
 network: polygon

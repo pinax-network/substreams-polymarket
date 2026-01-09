@@ -1,5 +1,5 @@
 [package]
-name = "safeproxyfactory"
+name = "safe-proxy-factory"
 description = "SafeProxyFactory events substreams package"
 version = { workspace = true }
 edition = { workspace = true }

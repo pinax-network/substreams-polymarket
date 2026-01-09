@@ -1,6 +1,6 @@
 specVersion: v0.1.0
 package:
-  name: polymarket
+  name: ctf_exchange
   version: v0.1.0
   url: https://github.com/pinax-network/substreams-polymarket
   description: Polymarket for EVM
@@ -9,11 +9,11 @@ package:
 binaries:
   default:
     type: wasm/rust-v1
-    file: ../target/wasm32-unknown-unknown/release/polymarket.wasm
+    file: ../target/wasm32-unknown-unknown/release/ctf_exchange.wasm
 
 protobuf:
   files:
-    - polymarket.proto
+    - ctf_exchange.proto
   importPaths:
     - ../proto/v1/
   excludePaths:
@@ -27,13 +27,13 @@ modules:
       - params: string
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:polymarket.v1.Events
+      type: proto:ctf_exchange.v1.Events
 
   - name: store_token
     kind: store
     updatePolicy: set
-    valueType: proto:polymarket.v1.StoreToken
+    valueType: proto:ctf_exchange.v1.StoreToken
     inputs:
       - map: map_events
 
-network: mainnet
+network: polygon

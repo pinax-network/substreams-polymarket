@@ -26,4 +26,4 @@ modules:
     output:
       type: proto:erc20transfers.v1.Events
 
-network: mainnet
+network: polygon

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package umactfadapter.v1;
+package uma_ctf_adapter.v1;
 
 message Events { repeated Transaction transactions = 1; }
 

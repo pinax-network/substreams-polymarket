@@ -24,42 +24,42 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
                 continue;
             }
 
-            // TransferSingle event
-            if let Some(event) = erc1155::TransferSingle::match_and_decode(log) {
-                total_transfer_single += 1;
-                let event = pb::log::Log::TransferSingle(pb::TransferSingle {
-                    operator: event.operator.to_vec(),
-                    from: event.from.to_vec(),
-                    to: event.to.to_vec(),
-                    id: event.id.to_string(),
-                    value: event.value.to_string(),
-                });
-                transaction.logs.push(pb::Log::create_log(log, event));
-            }
+            // // TransferSingle event
+            // if let Some(event) = erc1155::TransferSingle::match_and_decode(log) {
+            //     total_transfer_single += 1;
+            //     let event = pb::log::Log::TransferSingle(pb::TransferSingle {
+            //         operator: event.operator.to_vec(),
+            //         from: event.from.to_vec(),
+            //         to: event.to.to_vec(),
+            //         id: event.id.to_string(),
+            //         value: event.value.to_string(),
+            //     });
+            //     transaction.logs.push(pb::Log::create_log(log, event));
+            // }
 
-            // TransferBatch event
-            if let Some(event) = erc1155::TransferBatch::match_and_decode(log) {
-                total_transfer_batch += 1;
-                let event = pb::log::Log::TransferBatch(pb::TransferBatch {
-                    operator: event.operator.to_vec(),
-                    from: event.from.to_vec(),
-                    to: event.to.to_vec(),
-                    ids: event.ids.iter().map(|id| id.to_string()).collect(),
-                    values: event.values.iter().map(|value| value.to_string()).collect(),
-                });
-                transaction.logs.push(pb::Log::create_log(log, event));
-            }
+            // // TransferBatch event
+            // if let Some(event) = erc1155::TransferBatch::match_and_decode(log) {
+            //     total_transfer_batch += 1;
+            //     let event = pb::log::Log::TransferBatch(pb::TransferBatch {
+            //         operator: event.operator.to_vec(),
+            //         from: event.from.to_vec(),
+            //         to: event.to.to_vec(),
+            //         ids: event.ids.iter().map(|id| id.to_string()).collect(),
+            //         values: event.values.iter().map(|value| value.to_string()).collect(),
+            //     });
+            //     transaction.logs.push(pb::Log::create_log(log, event));
+            // }
 
-            // ApprovalForAll event
-            if let Some(event) = erc1155::ApprovalForAll::match_and_decode(log) {
-                total_approval_for_all += 1;
-                let event = pb::log::Log::ApprovalForAll(pb::ApprovalForAll {
-                    account: event.account.to_vec(),
-                    operator: event.operator.to_vec(),
-                    approved: event.approved,
-                });
-                transaction.logs.push(pb::Log::create_log(log, event));
-            }
+            // // ApprovalForAll event
+            // if let Some(event) = erc1155::ApprovalForAll::match_and_decode(log) {
+            //     total_approval_for_all += 1;
+            //     let event = pb::log::Log::ApprovalForAll(pb::ApprovalForAll {
+            //         account: event.account.to_vec(),
+            //         operator: event.operator.to_vec(),
+            //         approved: event.approved,
+            //     });
+            //     transaction.logs.push(pb::Log::create_log(log, event));
+            // }
 
             // URI event
             if let Some(event) = erc1155::Uri::match_and_decode(log) {

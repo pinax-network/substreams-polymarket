@@ -1,12 +1,13 @@
 [package]
-name = "polymarket"
-description = { workspace = true }
-edition = { workspace = true }
+name = "erc20-balances"
+description = "ERC-20 Balances via RPC substreams package"
 version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
 authors = ["Denis <denis@pinax.network>"]
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 substreams = { workspace = true }
