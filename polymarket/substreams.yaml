@@ -24,6 +24,7 @@ modules:
   - name: map_events
     kind: map
     inputs:
+      - params: string
       - source: sf.ethereum.type.v2.Block
     output:
       type: proto:polymarket.v1.Events

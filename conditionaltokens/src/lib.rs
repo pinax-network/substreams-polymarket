@@ -30,8 +30,9 @@ const PAYOUT_REDEMPTION_TOPIC: [u8; 32] = hex_literal::hex!(
 );
 
 #[substreams::handlers::map]
-fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
+fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::errors::Error> {
     let mut events_output = pb::Events::default();
+    let matcher = substreams::expr_matcher(&params);
     let mut total_condition_preparation = 0;
     let mut total_condition_resolution = 0;
     let mut total_position_split = 0;
@@ -42,6 +43,11 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
         let mut transaction = pb::Transaction::create_transaction(trx);
         for log_view in trx.receipt().logs() {
             let log = log_view.log;
+
+            // Skip logs that don't match the filter (if params provided)
+            if !matcher.matches_keys(&vec![format!("evt_addr:0x{}", Hex::encode(&log.address))]) {
+                continue;
+            }
 
             if log.topics.is_empty() {
                 continue;
