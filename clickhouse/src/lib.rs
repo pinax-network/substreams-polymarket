@@ -1,14 +1,14 @@
-mod conditionaltokens;
-mod ctfexchange;
+mod conditional_tokens;
+mod ctf_exchange;
 mod erc1155;
-mod erc20balances;
-mod erc20transfers;
-mod feemodule;
+mod erc20_balances;
+mod erc20_transfers;
+mod fee_module;
 mod logs;
-mod negriskadapter;
-mod safeproxyfactory;
+mod negrisk_adapter;
+mod safe_proxy_factory;
 mod transactions;
-mod umactfadapter;
+mod uma_ctf_adapter;
 use substreams::errors::Error;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::pb::database::DatabaseChanges;
@@ -28,15 +28,15 @@ pub fn db_out(
 ) -> Result<DatabaseChanges, Error> {
     let mut tables = substreams_database_change::tables::Tables::new();
 
-    ctfexchange::process_events(&mut tables, &clock, &events_ctf_exchange);
+    ctf_exchange::process_events(&mut tables, &clock, &events_ctf_exchange);
     erc1155::process_events(&mut tables, &clock, &events_erc1155);
-    erc20transfers::process_events(&mut tables, &clock, &events_erc20_transfers);
-    erc20balances::process_events(&mut tables, &clock, &events_erc20_balances);
-    umactfadapter::process_events(&mut tables, &clock, &events_uma_ctf_adapter);
-    negriskadapter::process_events(&mut tables, &clock, &events_negrisk_adapter);
-    conditionaltokens::process_events(&mut tables, &clock, &events_conditional_tokens);
-    safeproxyfactory::process_events(&mut tables, &clock, &events_safe_proxy_factory);
-    feemodule::process_events(&mut tables, &clock, &events_fee_module);
+    erc20_transfers::process_events(&mut tables, &clock, &events_erc20_transfers);
+    erc20_balances::process_events(&mut tables, &clock, &events_erc20_balances);
+    uma_ctf_adapter::process_events(&mut tables, &clock, &events_uma_ctf_adapter);
+    negrisk_adapter::process_events(&mut tables, &clock, &events_negrisk_adapter);
+    conditional_tokens::process_events(&mut tables, &clock, &events_conditional_tokens);
+    safe_proxy_factory::process_events(&mut tables, &clock, &events_safe_proxy_factory);
+    fee_module::process_events(&mut tables, &clock, &events_fee_module);
 
     // ONLY include blocks if events are present
     if !tables.tables.is_empty() {

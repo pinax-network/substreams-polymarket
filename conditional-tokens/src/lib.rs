@@ -5,29 +5,24 @@ use substreams_ethereum::pb::eth::v2::Block;
 
 // Event signatures for ConditionalTokens
 // ConditionPreparation(bytes32 indexed conditionId, address indexed oracle, bytes32 indexed questionId, uint256 outcomeSlotCount)
-const CONDITION_PREPARATION_TOPIC: [u8; 32] = hex_literal::hex!(
-    "ab3760c3bd2bb38b5bcf54dc79802ed67338b4b83ebe4e6fabbef47d2ad2da4b"
-);
+const CONDITION_PREPARATION_TOPIC: [u8; 32] =
+    hex_literal::hex!("ab3760c3bd2bb38b5bcf54dc79802ed67338b4b83ebe4e6fabbef47d2ad2da4b");
 
 // ConditionResolution(bytes32 indexed conditionId, address indexed oracle, bytes32 indexed questionId, uint256 outcomeSlotCount, uint256[] payoutNumerators)
-const CONDITION_RESOLUTION_TOPIC: [u8; 32] = hex_literal::hex!(
-    "b44d84d3289691f71497564b85d47f0c58ee5f57c29ac06fc5a60d6b30a1e5c5"
-);
+const CONDITION_RESOLUTION_TOPIC: [u8; 32] =
+    hex_literal::hex!("b44d84d3289691f71497564b85d47f0c58ee5f57c29ac06fc5a60d6b30a1e5c5");
 
 // PositionSplit(address indexed stakeholder, IERC20 collateralToken, bytes32 indexed parentCollectionId, bytes32 indexed conditionId, uint256[] partition, uint256 amount)
-const POSITION_SPLIT_TOPIC: [u8; 32] = hex_literal::hex!(
-    "2e6bb91f8cbcda0c93623c54d0403a43514f2b60a07d70d9e41bcc1ea3fa0e1f"
-);
+const POSITION_SPLIT_TOPIC: [u8; 32] =
+    hex_literal::hex!("2e6bb91f8cbcda0c93623c54d0403a43514f2b60a07d70d9e41bcc1ea3fa0e1f");
 
 // PositionsMerge(address indexed stakeholder, IERC20 collateralToken, bytes32 indexed parentCollectionId, bytes32 indexed conditionId, uint256[] partition, uint256 amount)
-const POSITIONS_MERGE_TOPIC: [u8; 32] = hex_literal::hex!(
-    "6f13ca62ed55bdc2c9d3f3c70e4a3bb1a5fcc5c2b21cb8ce6ea3f8ca5eb7b19b"
-);
+const POSITIONS_MERGE_TOPIC: [u8; 32] =
+    hex_literal::hex!("6f13ca62ed55bdc2c9d3f3c70e4a3bb1a5fcc5c2b21cb8ce6ea3f8ca5eb7b19b");
 
 // PayoutRedemption(address indexed redeemer, IERC20 indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)
-const PAYOUT_REDEMPTION_TOPIC: [u8; 32] = hex_literal::hex!(
-    "2682012a0bdd2cdfc287e4f7e8d73d6b5e0f5a5d5f5ae3809f52c7f22cd63dbb"
-);
+const PAYOUT_REDEMPTION_TOPIC: [u8; 32] =
+    hex_literal::hex!("2682012a0bdd2cdfc287e4f7e8d73d6b5e0f5a5d5f5ae3809f52c7f22cd63dbb");
 
 #[substreams::handlers::map]
 fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::errors::Error> {
@@ -177,9 +172,7 @@ fn decode_condition_resolution(
     })
 }
 
-fn decode_position_split(
-    log: &substreams_ethereum::pb::eth::v2::Log,
-) -> Option<pb::PositionSplit> {
+fn decode_position_split(log: &substreams_ethereum::pb::eth::v2::Log) -> Option<pb::PositionSplit> {
     // Topics: stakeholder (indexed), parentCollectionId (indexed), conditionId (indexed)
     // Data: collateralToken (address), partition (uint256[]), amount (uint256)
     if log.topics.len() < 4 || log.data.len() < 96 {

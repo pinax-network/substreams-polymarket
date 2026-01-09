@@ -1,7 +1,7 @@
 use common::{CreateLog, CreateTransaction};
 use proto::pb::negrisk_adapter::v1 as pb;
 use substreams::Hex;
-use substreams_abis::evm::polymarket::negriskadapter::events as events;
+use substreams_abis::evm::polymarket::negriskadapter::events;
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 
@@ -150,20 +150,14 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     substreams::log::info!("Total MarketPrepared events: {}", total_market_prepared);
     substreams::log::info!("Total NewAdmin events: {}", total_new_admin);
     substreams::log::info!("Total OutcomeReported events: {}", total_outcome_reported);
-    substreams::log::info!(
-        "Total PayoutRedemption events: {}",
-        total_payout_redemption
-    );
+    substreams::log::info!("Total PayoutRedemption events: {}", total_payout_redemption);
     substreams::log::info!("Total PositionSplit events: {}", total_position_split);
     substreams::log::info!(
         "Total PositionsConverted events: {}",
         total_positions_converted
     );
     substreams::log::info!("Total PositionsMerge events: {}", total_positions_merge);
-    substreams::log::info!(
-        "Total QuestionPrepared events: {}",
-        total_question_prepared
-    );
+    substreams::log::info!("Total QuestionPrepared events: {}", total_question_prepared);
     substreams::log::info!("Total RemovedAdmin events: {}", total_removed_admin);
 
     Ok(events_output)
