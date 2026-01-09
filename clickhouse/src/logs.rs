@@ -1,5 +1,5 @@
 use common::bytes_to_hex;
-use proto::pb::polymarket;
+use proto::pb::ctf_exchange;
 use substreams::pb::substreams::Clock;
 
 pub fn log_key(clock: &Clock, ordinal: u64) -> [(&'static str, String); 4] {
@@ -17,7 +17,7 @@ pub fn log_key(clock: &Clock, ordinal: u64) -> [(&'static str, String); 4] {
 }
 
 pub fn set_template_log(
-    log: &polymarket::v1::Log,
+    log: &ctf_exchange::v1::Log,
     log_index: usize,
     row: &mut substreams_database_change::tables::Row,
 ) {

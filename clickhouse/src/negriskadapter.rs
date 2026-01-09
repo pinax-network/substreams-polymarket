@@ -1,41 +1,39 @@
 use common::bytes_to_hex;
-use proto::pb::negriskadapter::v1 as negriskadapter;
+use proto::pb::negrisk_adapter::v1 as negrisk_adapter;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::tables::{Row, Tables};
 
 use crate::{logs::log_key, set_clock};
 
-pub fn process_events(tables: &mut Tables, clock: &Clock, events: &negriskadapter::Events) {
+pub fn process_events(tables: &mut Tables, clock: &Clock, events: &negrisk_adapter::Events) {
     for (tx_index, tx) in events.transactions.iter().enumerate() {
         for (log_index, log) in tx.logs.iter().enumerate() {
             match &log.log {
-                Some(negriskadapter::log::Log::MarketPrepared(event)) => {
+                Some(negrisk_adapter::log::Log::MarketPrepared(event)) => {
                     process_market_prepared(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(negriskadapter::log::Log::NewAdmin(event)) => {
+                Some(negrisk_adapter::log::Log::NewAdmin(event)) => {
                     process_new_admin(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(negriskadapter::log::Log::OutcomeReported(event)) => {
+                Some(negrisk_adapter::log::Log::OutcomeReported(event)) => {
                     process_outcome_reported(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(negriskadapter::log::Log::PayoutRedemption(event)) => {
+                Some(negrisk_adapter::log::Log::PayoutRedemption(event)) => {
                     process_payout_redemption(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(negriskadapter::log::Log::PositionSplit(event)) => {
+                Some(negrisk_adapter::log::Log::PositionSplit(event)) => {
                     process_position_split(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(negriskadapter::log::Log::PositionsConverted(event)) => {
-                    process_positions_converted(
-                        tables, clock, tx, log, tx_index, log_index, event,
-                    );
+                Some(negrisk_adapter::log::Log::PositionsConverted(event)) => {
+                    process_positions_converted(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(negriskadapter::log::Log::PositionsMerge(event)) => {
+                Some(negrisk_adapter::log::Log::PositionsMerge(event)) => {
                     process_positions_merge(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(negriskadapter::log::Log::QuestionPrepared(event)) => {
+                Some(negrisk_adapter::log::Log::QuestionPrepared(event)) => {
                     process_question_prepared(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(negriskadapter::log::Log::RemovedAdmin(event)) => {
+                Some(negrisk_adapter::log::Log::RemovedAdmin(event)) => {
                     process_removed_admin(tables, clock, tx, log, tx_index, log_index, event);
                 }
                 _ => {}
@@ -47,11 +45,11 @@ pub fn process_events(tables: &mut Tables, clock: &Clock, events: &negriskadapte
 fn process_market_prepared(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &negriskadapter::Transaction,
-    log: &negriskadapter::Log,
+    tx: &negrisk_adapter::Transaction,
+    log: &negrisk_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &negriskadapter::MarketPrepared,
+    event: &negrisk_adapter::MarketPrepared,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("negriskadapter_market_prepared", key);
@@ -69,11 +67,11 @@ fn process_market_prepared(
 fn process_new_admin(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &negriskadapter::Transaction,
-    log: &negriskadapter::Log,
+    tx: &negrisk_adapter::Transaction,
+    log: &negrisk_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &negriskadapter::NewAdmin,
+    event: &negrisk_adapter::NewAdmin,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("negriskadapter_new_admin", key);
@@ -89,11 +87,11 @@ fn process_new_admin(
 fn process_outcome_reported(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &negriskadapter::Transaction,
-    log: &negriskadapter::Log,
+    tx: &negrisk_adapter::Transaction,
+    log: &negrisk_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &negriskadapter::OutcomeReported,
+    event: &negrisk_adapter::OutcomeReported,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("negriskadapter_outcome_reported", key);
@@ -110,11 +108,11 @@ fn process_outcome_reported(
 fn process_payout_redemption(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &negriskadapter::Transaction,
-    log: &negriskadapter::Log,
+    tx: &negrisk_adapter::Transaction,
+    log: &negrisk_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &negriskadapter::PayoutRedemption,
+    event: &negrisk_adapter::PayoutRedemption,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("negriskadapter_payout_redemption", key);
@@ -132,11 +130,11 @@ fn process_payout_redemption(
 fn process_position_split(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &negriskadapter::Transaction,
-    log: &negriskadapter::Log,
+    tx: &negrisk_adapter::Transaction,
+    log: &negrisk_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &negriskadapter::PositionSplit,
+    event: &negrisk_adapter::PositionSplit,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("negriskadapter_position_split", key);
@@ -153,11 +151,11 @@ fn process_position_split(
 fn process_positions_converted(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &negriskadapter::Transaction,
-    log: &negriskadapter::Log,
+    tx: &negrisk_adapter::Transaction,
+    log: &negrisk_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &negriskadapter::PositionsConverted,
+    event: &negrisk_adapter::PositionsConverted,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("negriskadapter_positions_converted", key);
@@ -175,11 +173,11 @@ fn process_positions_converted(
 fn process_positions_merge(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &negriskadapter::Transaction,
-    log: &negriskadapter::Log,
+    tx: &negrisk_adapter::Transaction,
+    log: &negrisk_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &negriskadapter::PositionsMerge,
+    event: &negrisk_adapter::PositionsMerge,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("negriskadapter_positions_merge", key);
@@ -196,11 +194,11 @@ fn process_positions_merge(
 fn process_question_prepared(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &negriskadapter::Transaction,
-    log: &negriskadapter::Log,
+    tx: &negrisk_adapter::Transaction,
+    log: &negrisk_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &negriskadapter::QuestionPrepared,
+    event: &negrisk_adapter::QuestionPrepared,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("negriskadapter_question_prepared", key);
@@ -218,11 +216,11 @@ fn process_question_prepared(
 fn process_removed_admin(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &negriskadapter::Transaction,
-    log: &negriskadapter::Log,
+    tx: &negrisk_adapter::Transaction,
+    log: &negrisk_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &negriskadapter::RemovedAdmin,
+    event: &negrisk_adapter::RemovedAdmin,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("negriskadapter_removed_admin", key);
@@ -235,7 +233,7 @@ fn process_removed_admin(
     row.set("removed_admin", bytes_to_hex(&event.removed_admin));
 }
 
-fn set_negriskadapter_tx(tx: &negriskadapter::Transaction, tx_index: usize, row: &mut Row) {
+fn set_negriskadapter_tx(tx: &negrisk_adapter::Transaction, tx_index: usize, row: &mut Row) {
     let tx_to = match &tx.to {
         Some(addr) => bytes_to_hex(addr),
         None => "".to_string(),
@@ -251,7 +249,7 @@ fn set_negriskadapter_tx(tx: &negriskadapter::Transaction, tx_index: usize, row:
     row.set("tx_value", tx.value.to_string());
 }
 
-fn set_negriskadapter_log(log: &negriskadapter::Log, log_index: usize, row: &mut Row) {
+fn set_negriskadapter_log(log: &negrisk_adapter::Log, log_index: usize, row: &mut Row) {
     row.set("log_index", log_index as u32);
     row.set("log_address", bytes_to_hex(&log.address));
     row.set("log_ordinal", log.ordinal);

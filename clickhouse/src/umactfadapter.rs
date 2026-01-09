@@ -1,51 +1,51 @@
 use common::bytes_to_hex;
-use proto::pb::umactfadapter::v1 as umactfadapter;
+use proto::pb::uma_ctf_adapter::v1 as uma_ctf_adapter;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::tables::{Row, Tables};
 
 use crate::{logs::log_key, set_clock};
 
-pub fn process_events(tables: &mut Tables, clock: &Clock, events: &umactfadapter::Events) {
+pub fn process_events(tables: &mut Tables, clock: &Clock, events: &uma_ctf_adapter::Events) {
     for (tx_index, tx) in events.transactions.iter().enumerate() {
         for (log_index, log) in tx.logs.iter().enumerate() {
             match &log.log {
-                Some(umactfadapter::log::Log::AncillaryDataUpdated(event)) => {
+                Some(uma_ctf_adapter::log::Log::AncillaryDataUpdated(event)) => {
                     process_ancillary_data_updated(
                         tables, clock, tx, log, tx_index, log_index, event,
                     );
                 }
-                Some(umactfadapter::log::Log::NewAdmin(event)) => {
+                Some(uma_ctf_adapter::log::Log::NewAdmin(event)) => {
                     process_new_admin(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(umactfadapter::log::Log::QuestionEmergencyResolved(event)) => {
+                Some(uma_ctf_adapter::log::Log::QuestionEmergencyResolved(event)) => {
                     process_question_emergency_resolved(
                         tables, clock, tx, log, tx_index, log_index, event,
                     );
                 }
-                Some(umactfadapter::log::Log::QuestionFlagged(event)) => {
+                Some(uma_ctf_adapter::log::Log::QuestionFlagged(event)) => {
                     process_question_flagged(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(umactfadapter::log::Log::QuestionInitialized(event)) => {
+                Some(uma_ctf_adapter::log::Log::QuestionInitialized(event)) => {
                     process_question_initialized(
                         tables, clock, tx, log, tx_index, log_index, event,
                     );
                 }
-                Some(umactfadapter::log::Log::QuestionPaused(event)) => {
+                Some(uma_ctf_adapter::log::Log::QuestionPaused(event)) => {
                     process_question_paused(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(umactfadapter::log::Log::QuestionReset(event)) => {
+                Some(uma_ctf_adapter::log::Log::QuestionReset(event)) => {
                     process_question_reset(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(umactfadapter::log::Log::QuestionResolved(event)) => {
+                Some(uma_ctf_adapter::log::Log::QuestionResolved(event)) => {
                     process_question_resolved(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(umactfadapter::log::Log::QuestionUnpaused(event)) => {
+                Some(uma_ctf_adapter::log::Log::QuestionUnpaused(event)) => {
                     process_question_unpaused(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(umactfadapter::log::Log::RemovedAdmin(event)) => {
+                Some(uma_ctf_adapter::log::Log::RemovedAdmin(event)) => {
                     process_removed_admin(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(umactfadapter::log::Log::QuestionUnflagged(event)) => {
+                Some(uma_ctf_adapter::log::Log::QuestionUnflagged(event)) => {
                     process_question_unflagged(tables, clock, tx, log, tx_index, log_index, event);
                 }
                 _ => {}
@@ -57,11 +57,11 @@ pub fn process_events(tables: &mut Tables, clock: &Clock, events: &umactfadapter
 fn process_ancillary_data_updated(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::AncillaryDataUpdated,
+    event: &uma_ctf_adapter::AncillaryDataUpdated,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_ancillary_data_updated", key);
@@ -78,11 +78,11 @@ fn process_ancillary_data_updated(
 fn process_new_admin(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::NewAdmin,
+    event: &uma_ctf_adapter::NewAdmin,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_new_admin", key);
@@ -98,11 +98,11 @@ fn process_new_admin(
 fn process_question_emergency_resolved(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::QuestionEmergencyResolved,
+    event: &uma_ctf_adapter::QuestionEmergencyResolved,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_emergency_resolved", key);
@@ -118,11 +118,11 @@ fn process_question_emergency_resolved(
 fn process_question_flagged(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::QuestionFlagged,
+    event: &uma_ctf_adapter::QuestionFlagged,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_flagged", key);
@@ -137,11 +137,11 @@ fn process_question_flagged(
 fn process_question_initialized(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::QuestionInitialized,
+    event: &uma_ctf_adapter::QuestionInitialized,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_initialized", key);
@@ -162,11 +162,11 @@ fn process_question_initialized(
 fn process_question_paused(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::QuestionPaused,
+    event: &uma_ctf_adapter::QuestionPaused,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_paused", key);
@@ -181,11 +181,11 @@ fn process_question_paused(
 fn process_question_reset(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::QuestionReset,
+    event: &uma_ctf_adapter::QuestionReset,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_reset", key);
@@ -200,11 +200,11 @@ fn process_question_reset(
 fn process_question_resolved(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::QuestionResolved,
+    event: &uma_ctf_adapter::QuestionResolved,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_resolved", key);
@@ -221,11 +221,11 @@ fn process_question_resolved(
 fn process_question_unpaused(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::QuestionUnpaused,
+    event: &uma_ctf_adapter::QuestionUnpaused,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_unpaused", key);
@@ -240,11 +240,11 @@ fn process_question_unpaused(
 fn process_removed_admin(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::RemovedAdmin,
+    event: &uma_ctf_adapter::RemovedAdmin,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_removed_admin", key);
@@ -260,11 +260,11 @@ fn process_removed_admin(
 fn process_question_unflagged(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &umactfadapter::Transaction,
-    log: &umactfadapter::Log,
+    tx: &uma_ctf_adapter::Transaction,
+    log: &uma_ctf_adapter::Log,
     tx_index: usize,
     log_index: usize,
-    event: &umactfadapter::QuestionUnflagged,
+    event: &uma_ctf_adapter::QuestionUnflagged,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("umactfadapter_question_unflagged", key);
@@ -276,7 +276,7 @@ fn process_question_unflagged(
     row.set("question_id", bytes_to_hex(&event.question_id));
 }
 
-fn set_umactfadapter_tx(tx: &umactfadapter::Transaction, tx_index: usize, row: &mut Row) {
+fn set_umactfadapter_tx(tx: &uma_ctf_adapter::Transaction, tx_index: usize, row: &mut Row) {
     let tx_to = match &tx.to {
         Some(addr) => bytes_to_hex(addr),
         None => "".to_string(),
@@ -292,7 +292,7 @@ fn set_umactfadapter_tx(tx: &umactfadapter::Transaction, tx_index: usize, row: &
     row.set("tx_value", tx.value.to_string());
 }
 
-fn set_umactfadapter_log(log: &umactfadapter::Log, log_index: usize, row: &mut Row) {
+fn set_umactfadapter_log(log: &uma_ctf_adapter::Log, log_index: usize, row: &mut Row) {
     row.set("log_index", log_index as u32);
     row.set("log_address", bytes_to_hex(&log.address));
     row.set("log_ordinal", log.ordinal);

@@ -1,26 +1,23 @@
 use common::{CreateLog, CreateTransaction};
-use proto::pb::safeproxyfactory::v1 as pb;
+use proto::pb::safe_proxy_factory::v1 as pb;
 use substreams::Hex;
 use substreams_ethereum::pb::eth::v2::{Block, Log};
 
 // Event signatures for SafeProxyFactory
 // ProxyCreation(address indexed proxy, address singleton)
 // keccak256("ProxyCreation(address,address)")
-const PROXY_CREATION_TOPIC: [u8; 32] = hex_literal::hex!(
-    "4f51faf6c4561ff95f067657e43439f0f856d97c04d9ec9070a6199ad418e235"
-);
+const PROXY_CREATION_TOPIC: [u8; 32] =
+    hex_literal::hex!("4f51faf6c4561ff95f067657e43439f0f856d97c04d9ec9070a6199ad418e235");
 
 // ProxyCreationL2(address indexed proxy, address singleton, bytes initializer, uint256 saltNonce)
 // keccak256("ProxyCreationL2(address,address,bytes,uint256)")
-const PROXY_CREATION_L2_TOPIC: [u8; 32] = hex_literal::hex!(
-    "8b30b9fb5ea69b59e9b733e9c64c069137bfda6ff4c0ca3e5e5b764ec8ce3df6"
-);
+const PROXY_CREATION_L2_TOPIC: [u8; 32] =
+    hex_literal::hex!("8b30b9fb5ea69b59e9b733e9c64c069137bfda6ff4c0ca3e5e5b764ec8ce3df6");
 
 // ChainSpecificProxyCreationL2(address indexed proxy, address singleton, bytes initializer, uint256 saltNonce, uint256 chainId)
 // keccak256("ChainSpecificProxyCreationL2(address,address,bytes,uint256,uint256)")
-const CHAIN_SPECIFIC_PROXY_CREATION_L2_TOPIC: [u8; 32] = hex_literal::hex!(
-    "ce0722fe61c79bd87c76fe79ea1ca6fb5c121a3f3e09a40cc7ea3626f1e23d2a"
-);
+const CHAIN_SPECIFIC_PROXY_CREATION_L2_TOPIC: [u8; 32] =
+    hex_literal::hex!("ce0722fe61c79bd87c76fe79ea1ca6fb5c121a3f3e09a40cc7ea3626f1e23d2a");
 
 #[substreams::handlers::map]
 fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::errors::Error> {
@@ -108,7 +105,7 @@ fn decode_proxy_creation(log: &Log) -> Option<pb::ProxyCreation> {
     }
 
     let proxy = extract_address_from_topic(&log.topics[1]);
-    
+
     if log.data.len() < 32 {
         return None;
     }

@@ -1,24 +1,24 @@
 use common::bytes_to_hex;
-use proto::pb::erc20transfers::v1 as erc20transfers;
+use proto::pb::erc20::transfers::v1 as erc20_transfers;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::tables::{Row, Tables};
 
 use crate::{logs::log_key, set_clock};
 
-pub fn process_events(tables: &mut Tables, clock: &Clock, events: &erc20transfers::Events) {
+pub fn process_events(tables: &mut Tables, clock: &Clock, events: &erc20_transfers::Events) {
     for (tx_index, tx) in events.transactions.iter().enumerate() {
         for (log_index, log) in tx.logs.iter().enumerate() {
             match &log.log {
-                Some(erc20transfers::log::Log::Transfer(event)) => {
+                Some(erc20_transfers::log::Log::Transfer(event)) => {
                     process_transfer(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(erc20transfers::log::Log::Approval(event)) => {
+                Some(erc20_transfers::log::Log::Approval(event)) => {
                     process_approval(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(erc20transfers::log::Log::Deposit(event)) => {
+                Some(erc20_transfers::log::Log::Deposit(event)) => {
                     process_deposit(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(erc20transfers::log::Log::Withdrawal(event)) => {
+                Some(erc20_transfers::log::Log::Withdrawal(event)) => {
                     process_withdrawal(tables, clock, tx, log, tx_index, log_index, event);
                 }
                 _ => {}
@@ -30,11 +30,11 @@ pub fn process_events(tables: &mut Tables, clock: &Clock, events: &erc20transfer
 fn process_transfer(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &erc20transfers::Transaction,
-    log: &erc20transfers::Log,
+    tx: &erc20_transfers::Transaction,
+    log: &erc20_transfers::Log,
     tx_index: usize,
     log_index: usize,
-    event: &erc20transfers::Transfer,
+    event: &erc20_transfers::Transfer,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("erc20_transfer", key);
@@ -51,11 +51,11 @@ fn process_transfer(
 fn process_approval(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &erc20transfers::Transaction,
-    log: &erc20transfers::Log,
+    tx: &erc20_transfers::Transaction,
+    log: &erc20_transfers::Log,
     tx_index: usize,
     log_index: usize,
-    event: &erc20transfers::Approval,
+    event: &erc20_transfers::Approval,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("erc20_approval", key);
@@ -72,11 +72,11 @@ fn process_approval(
 fn process_deposit(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &erc20transfers::Transaction,
-    log: &erc20transfers::Log,
+    tx: &erc20_transfers::Transaction,
+    log: &erc20_transfers::Log,
     tx_index: usize,
     log_index: usize,
-    event: &erc20transfers::Deposit,
+    event: &erc20_transfers::Deposit,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("weth_deposit", key);
@@ -92,11 +92,11 @@ fn process_deposit(
 fn process_withdrawal(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &erc20transfers::Transaction,
-    log: &erc20transfers::Log,
+    tx: &erc20_transfers::Transaction,
+    log: &erc20_transfers::Log,
     tx_index: usize,
     log_index: usize,
-    event: &erc20transfers::Withdrawal,
+    event: &erc20_transfers::Withdrawal,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("weth_withdrawal", key);
@@ -109,7 +109,7 @@ fn process_withdrawal(
     row.set("wad", &event.wad);
 }
 
-fn set_erc20transfers_tx(tx: &erc20transfers::Transaction, tx_index: usize, row: &mut Row) {
+fn set_erc20transfers_tx(tx: &erc20_transfers::Transaction, tx_index: usize, row: &mut Row) {
     let tx_to = match &tx.to {
         Some(addr) => bytes_to_hex(addr),
         None => "".to_string(),
@@ -125,7 +125,7 @@ fn set_erc20transfers_tx(tx: &erc20transfers::Transaction, tx_index: usize, row:
     row.set("tx_value", tx.value.to_string());
 }
 
-fn set_erc20transfers_log(log: &erc20transfers::Log, log_index: usize, row: &mut Row) {
+fn set_erc20transfers_log(log: &erc20_transfers::Log, log_index: usize, row: &mut Row) {
     row.set("log_index", log_index as u32);
     row.set("log_address", bytes_to_hex(&log.address));
     row.set("log_ordinal", log.ordinal);

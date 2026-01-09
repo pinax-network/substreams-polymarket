@@ -1,6 +1,6 @@
 specVersion: v0.1.0
 package:
-  name: safeproxyfactory
+  name: safe_proxy_factory
   version: v0.4.0
   url: https://github.com/pinax-network/substreams-polymarket
   description: SafeProxyFactory events substreams package
@@ -8,14 +8,14 @@ package:
 
 protobuf:
   files:
-    - safeproxyfactory.proto
+    - safe-proxy-factory.proto
   importPaths:
     - ../proto/v1
 
 binaries:
   default:
     type: wasm/rust-v1
-    file: ../target/wasm32-unknown-unknown/release/safeproxyfactory.wasm
+    file: ../target/wasm32-unknown-unknown/release/safe_proxy_factory.wasm
 
 modules:
   - name: map_events
@@ -24,6 +24,6 @@ modules:
       - params: string
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:safeproxyfactory.v1.Events
+      type: proto:safe_proxy_factory.v1.Events
 
 network: polygon

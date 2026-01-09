@@ -1,27 +1,31 @@
 use common::bytes_to_hex;
-use proto::pb::conditionaltokens::v1 as conditionaltokens;
+use proto::pb::conditional_tokens::v1 as conditional_tokens;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::tables::{Row, Tables};
 
 use crate::{logs::log_key, set_clock};
 
-pub fn process_events(tables: &mut Tables, clock: &Clock, events: &conditionaltokens::Events) {
+pub fn process_events(tables: &mut Tables, clock: &Clock, events: &conditional_tokens::Events) {
     for (tx_index, tx) in events.transactions.iter().enumerate() {
         for (log_index, log) in tx.logs.iter().enumerate() {
             match &log.log {
-                Some(conditionaltokens::log::Log::ConditionPreparation(event)) => {
-                    process_condition_preparation(tables, clock, tx, log, tx_index, log_index, event);
+                Some(conditional_tokens::log::Log::ConditionPreparation(event)) => {
+                    process_condition_preparation(
+                        tables, clock, tx, log, tx_index, log_index, event,
+                    );
                 }
-                Some(conditionaltokens::log::Log::ConditionResolution(event)) => {
-                    process_condition_resolution(tables, clock, tx, log, tx_index, log_index, event);
+                Some(conditional_tokens::log::Log::ConditionResolution(event)) => {
+                    process_condition_resolution(
+                        tables, clock, tx, log, tx_index, log_index, event,
+                    );
                 }
-                Some(conditionaltokens::log::Log::PositionSplit(event)) => {
+                Some(conditional_tokens::log::Log::PositionSplit(event)) => {
                     process_position_split(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(conditionaltokens::log::Log::PositionsMerge(event)) => {
+                Some(conditional_tokens::log::Log::PositionsMerge(event)) => {
                     process_positions_merge(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(conditionaltokens::log::Log::PayoutRedemption(event)) => {
+                Some(conditional_tokens::log::Log::PayoutRedemption(event)) => {
                     process_payout_redemption(tables, clock, tx, log, tx_index, log_index, event);
                 }
                 _ => {}
@@ -33,11 +37,11 @@ pub fn process_events(tables: &mut Tables, clock: &Clock, events: &conditionalto
 fn process_condition_preparation(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &conditionaltokens::Transaction,
-    log: &conditionaltokens::Log,
+    tx: &conditional_tokens::Transaction,
+    log: &conditional_tokens::Log,
     tx_index: usize,
     log_index: usize,
-    event: &conditionaltokens::ConditionPreparation,
+    event: &conditional_tokens::ConditionPreparation,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("conditionaltokens_condition_preparation", key);
@@ -55,11 +59,11 @@ fn process_condition_preparation(
 fn process_condition_resolution(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &conditionaltokens::Transaction,
-    log: &conditionaltokens::Log,
+    tx: &conditional_tokens::Transaction,
+    log: &conditional_tokens::Log,
     tx_index: usize,
     log_index: usize,
-    event: &conditionaltokens::ConditionResolution,
+    event: &conditional_tokens::ConditionResolution,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("conditionaltokens_condition_resolution", key);
@@ -78,11 +82,11 @@ fn process_condition_resolution(
 fn process_position_split(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &conditionaltokens::Transaction,
-    log: &conditionaltokens::Log,
+    tx: &conditional_tokens::Transaction,
+    log: &conditional_tokens::Log,
     tx_index: usize,
     log_index: usize,
-    event: &conditionaltokens::PositionSplit,
+    event: &conditional_tokens::PositionSplit,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("conditionaltokens_position_split", key);
@@ -93,7 +97,10 @@ fn process_position_split(
 
     row.set("stakeholder", bytes_to_hex(&event.stakeholder));
     row.set("collateral_token", bytes_to_hex(&event.collateral_token));
-    row.set("parent_collection_id", bytes_to_hex(&event.parent_collection_id));
+    row.set(
+        "parent_collection_id",
+        bytes_to_hex(&event.parent_collection_id),
+    );
     row.set("condition_id", bytes_to_hex(&event.condition_id));
     row.set("partition", event.partition.join(","));
     row.set("amount", &event.amount);
@@ -102,11 +109,11 @@ fn process_position_split(
 fn process_positions_merge(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &conditionaltokens::Transaction,
-    log: &conditionaltokens::Log,
+    tx: &conditional_tokens::Transaction,
+    log: &conditional_tokens::Log,
     tx_index: usize,
     log_index: usize,
-    event: &conditionaltokens::PositionsMerge,
+    event: &conditional_tokens::PositionsMerge,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("conditionaltokens_positions_merge", key);
@@ -117,7 +124,10 @@ fn process_positions_merge(
 
     row.set("stakeholder", bytes_to_hex(&event.stakeholder));
     row.set("collateral_token", bytes_to_hex(&event.collateral_token));
-    row.set("parent_collection_id", bytes_to_hex(&event.parent_collection_id));
+    row.set(
+        "parent_collection_id",
+        bytes_to_hex(&event.parent_collection_id),
+    );
     row.set("condition_id", bytes_to_hex(&event.condition_id));
     row.set("partition", event.partition.join(","));
     row.set("amount", &event.amount);
@@ -126,11 +136,11 @@ fn process_positions_merge(
 fn process_payout_redemption(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &conditionaltokens::Transaction,
-    log: &conditionaltokens::Log,
+    tx: &conditional_tokens::Transaction,
+    log: &conditional_tokens::Log,
     tx_index: usize,
     log_index: usize,
-    event: &conditionaltokens::PayoutRedemption,
+    event: &conditional_tokens::PayoutRedemption,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("conditionaltokens_payout_redemption", key);
@@ -141,13 +151,16 @@ fn process_payout_redemption(
 
     row.set("redeemer", bytes_to_hex(&event.redeemer));
     row.set("collateral_token", bytes_to_hex(&event.collateral_token));
-    row.set("parent_collection_id", bytes_to_hex(&event.parent_collection_id));
+    row.set(
+        "parent_collection_id",
+        bytes_to_hex(&event.parent_collection_id),
+    );
     row.set("condition_id", bytes_to_hex(&event.condition_id));
     row.set("index_sets", event.index_sets.join(","));
     row.set("payout", &event.payout);
 }
 
-fn set_conditionaltokens_tx(tx: &conditionaltokens::Transaction, tx_index: usize, row: &mut Row) {
+fn set_conditionaltokens_tx(tx: &conditional_tokens::Transaction, tx_index: usize, row: &mut Row) {
     let tx_to = match &tx.to {
         Some(addr) => bytes_to_hex(addr),
         None => "".to_string(),
@@ -163,7 +176,7 @@ fn set_conditionaltokens_tx(tx: &conditionaltokens::Transaction, tx_index: usize
     row.set("tx_value", tx.value.to_string());
 }
 
-fn set_conditionaltokens_log(log: &conditionaltokens::Log, log_index: usize, row: &mut Row) {
+fn set_conditionaltokens_log(log: &conditional_tokens::Log, log_index: usize, row: &mut Row) {
     row.set("log_index", log_index as u32);
     row.set("log_address", bytes_to_hex(&log.address));
     row.set("log_ordinal", log.ordinal);

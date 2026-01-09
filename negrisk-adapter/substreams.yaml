@@ -1,6 +1,6 @@
 specVersion: v0.1.0
 package:
-  name: negriskadapter
+  name: negrisk_adapter
   version: v0.1.0
   url: https://github.com/pinax-network/substreams-polymarket
   description: NegRiskAdapter events substreams package
@@ -8,14 +8,14 @@ package:
 
 protobuf:
   files:
-    - negriskadapter.proto
+    - negrisk-adapter.proto
   importPaths:
     - ../proto/v1
 
 binaries:
   default:
     type: wasm/rust-v1
-    file: ../target/wasm32-unknown-unknown/release/negriskadapter.wasm
+    file: ../target/wasm32-unknown-unknown/release/negrisk_adapter.wasm
 
 modules:
   - name: map_events
@@ -24,6 +24,6 @@ modules:
       - params: string
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:negriskadapter.v1.Events
+      type: proto:negrisk_adapter.v1.Events
 
 network: polygon

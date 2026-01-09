@@ -13,33 +13,34 @@ imports:
 
   # Events
   erc1155: ../erc1155/substreams.yaml
-  erc20transfers: ../erc20transfers/substreams.yaml
-  erc20balances: ../erc20balances/substreams.yaml
-  polymarket: ../polymarket/substreams.yaml
-  umactfadapter: ../umactfadapter/substreams.yaml
-  negriskadapter: ../negriskadapter/substreams.yaml
-  conditionaltokens: ../conditionaltokens/substreams.yaml
-  safeproxyfactory: ../safeproxyfactory/substreams.yaml
-  feemodule: ../feemodule/substreams.yaml
+  erc20_transfers: ../erc20-transfers/substreams.yaml
+  erc20_balances: ../erc20-balances/substreams.yaml
+  ctf_exchange: ../ctf-exchange/substreams.yaml
+  uma_ctf_adapter: ../uma-ctf-adapter/substreams.yaml
+  negrisk_adapter: ../negrisk-adapter/substreams.yaml
+  conditional_tokens: ../conditional-tokens/substreams.yaml
+  safe_proxy_factory: ../safe-proxy-factory/substreams.yaml
+  fee_module: ../fee-module/substreams.yaml
 
 binaries:
   default:
     type: wasm/rust-v1
     file: ../target/wasm32-unknown-unknown/release/clickhouse.wasm
+
 modules:
   - name: db_out
     kind: map
     inputs:
       - source: sf.substreams.v1.Clock
-      - map: polymarket:map_events
+      - map: ctf_exchange:map_events
       - map: erc1155:map_events
-      - map: erc20transfers:map_events
-      - map: erc20balances:map_events
-      - map: umactfadapter:map_events
-      - map: negriskadapter:map_events
-      - map: conditionaltokens:map_events
-      - map: safeproxyfactory:map_events
-      - map: feemodule:map_events
+      - map: erc20_transfers:map_events
+      - map: erc20_balances:map_events
+      - map: uma_ctf_adapter:map_events
+      - map: negrisk_adapter:map_events
+      - map: conditional_tokens:map_events
+      - map: safe_proxy_factory:map_events
+      - map: fee_module:map_events
     output:
       type: proto:sf.substreams.sink.database.v1.DatabaseChanges
 
@@ -56,18 +57,18 @@ network: polygon
 
 params:
   # CTF Exchange (CTFExchange) + Neg Risk CTF Exchange (NegRiskCTFExchange)
-  polymarket:map_events: "evt_addr:0x4bfb41d5b3570defd03c39a9a4d8de6bd8b8982e || evt_addr:0xc5d563a36ae78145c45a50134d48a1215220f80a"
+  ctf_exchange:map_events: "evt_addr:0x4bfb41d5b3570defd03c39a9a4d8de6bd8b8982e || evt_addr:0xc5d563a36ae78145c45a50134d48a1215220f80a"
   # Conditional Tokens (CTF / ERC-1155)
   erc1155:map_events: "evt_addr:0x4d97dcd97ec945f40cf65f87097ace5ea0476045"
   # USDC (collateral)
-  erc20transfers:map_events: "evt_addr:0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
+  erc20_transfers:map_events: "evt_addr:0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
   # UmaCtfAdapter v3.0 + UmaCtfAdapter v2.0
-  umactfadapter:map_events: "evt_addr:0x2f5e3684cb1f318ec51b00edba38d79ac2c0aa9d || evt_addr:0x6a9d222616c90fca5754cd1333cfd9b7fb6a4f74"
+  uma_ctf_adapter:map_events: "evt_addr:0x2f5e3684cb1f318ec51b00edba38d79ac2c0aa9d || evt_addr:0x6a9d222616c90fca5754cd1333cfd9b7fb6a4f74"
   # Neg Risk Adapter (current) + Neg Risk Adapter (legacy)
-  negriskadapter:map_events: "evt_addr:0xd91e80cf2e7be2e162c6513ced06f1dd0da35296 || evt_addr:0xf16a3bdffb7b882e3236243e901f6c5953e2ee0d"
+  negrisk_adapter:map_events: "evt_addr:0xd91e80cf2e7be2e162c6513ced06f1dd0da35296 || evt_addr:0xf16a3bdffb7b882e3236243e901f6c5953e2ee0d"
   # Conditional Tokens
-  conditionaltokens:map_events: "evt_addr:0x4d97dcd97ec945f40cf65f87097ace5ea0476045"
+  conditional_tokens:map_events: "evt_addr:0x4d97dcd97ec945f40cf65f87097ace5ea0476045"
   # Safe Factory
-  safeproxyfactory:map_events: "evt_addr:0xaacfeea03eb1561c4e67d661e40682bd20e3541b"
+  safe_proxy_factory:map_events: "evt_addr:0xaacfeea03eb1561c4e67d661e40682bd20e3541b"
   # FeeModule (v2 + v0.0.1) + NegRiskFeeModule (v2 + v1)
-  feemodule:map_events: "evt_addr:0xe3f18acc55091e2c48d883fc8c8413319d4ab7b0 || evt_addr:0x56c79347e95530c01a2fc76e732f9566da16e113 || evt_addr:0xb768891e3130f6df18214ac804d4db76c2c37730 || evt_addr:0x78769d50be1763ed1ca0d5e878d93f05aabff29e"
+  fee_module:map_events: "evt_addr:0xe3f18acc55091e2c48d883fc8c8413319d4ab7b0 || evt_addr:0x56c79347e95530c01a2fc76e732f9566da16e113 || evt_addr:0xb768891e3130f6df18214ac804d4db76c2c37730 || evt_addr:0x78769d50be1763ed1ca0d5e878d93f05aabff29e"

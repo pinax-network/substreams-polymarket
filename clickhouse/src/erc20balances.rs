@@ -1,11 +1,11 @@
 use common::bytes_to_hex;
-use proto::pb::erc20balances::v1 as erc20balances;
+use proto::pb::erc20::balances::v1 as erc20_balances;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::tables::Tables;
 
 use crate::set_clock;
 
-pub fn process_events(tables: &mut Tables, clock: &Clock, events: &erc20balances::Events) {
+pub fn process_events(tables: &mut Tables, clock: &Clock, events: &erc20_balances::Events) {
     for (index, balance) in events.balances.iter().enumerate() {
         process_balance(tables, clock, index, balance);
     }
@@ -15,7 +15,7 @@ fn process_balance(
     tables: &mut Tables,
     clock: &Clock,
     index: usize,
-    balance: &erc20balances::Balance,
+    balance: &erc20_balances::Balance,
 ) {
     let key = [
         ("block_num", clock.number.to_string()),

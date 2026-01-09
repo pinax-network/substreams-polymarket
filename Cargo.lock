@@ -114,7 +114,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "conditionaltokens"
+name = "conditional-tokens"
 version = "0.0.0"
 dependencies = [
  "common",
@@ -171,6 +171,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ctf-exchange"
+version = "0.0.0"
+dependencies = [
+ "common",
+ "proto",
+ "substreams",
+ "substreams-abis",
+ "substreams-ethereum",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -204,7 +215,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "erc20balances"
+name = "erc20-balances"
 version = "0.0.0"
 dependencies = [
  "common",
@@ -215,7 +226,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "erc20transfers"
+name = "erc20-transfers"
 version = "0.0.0"
 dependencies = [
  "common",
@@ -330,7 +341,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
-name = "feemodule"
+name = "fee-module"
 version = "0.0.0"
 dependencies = [
  "common",
@@ -599,7 +610,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
 
 [[package]]
-name = "negriskadapter"
+name = "negrisk-adapter"
 version = "0.0.0"
 dependencies = [
  "common",
@@ -741,17 +752,6 @@ checksum = "3672b37090dbd86368a4145bc067582552b29c27377cad4e0a306c97f9bd7772"
 dependencies = [
  "fixedbitset 0.5.7",
  "indexmap",
-]
-
-[[package]]
-name = "polymarket"
-version = "0.0.0"
-dependencies = [
- "common",
- "proto",
- "substreams",
- "substreams-abis",
- "substreams-ethereum",
 ]
 
 [[package]]
@@ -1122,7 +1122,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
-name = "safeproxyfactory"
+name = "safe-proxy-factory"
 version = "0.0.0"
 dependencies = [
  "common",
@@ -1459,7 +1459,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "umactfadapter"
+name = "uma-ctf-adapter"
 version = "0.0.0"
 dependencies = [
  "common",

@@ -1,8 +1,8 @@
 use common::bytes_to_hex;
-use proto::pb::polymarket;
+use proto::pb::ctf_exchange;
 
 pub fn set_template_tx(
-    tx: &polymarket::v1::Transaction,
+    tx: &ctf_exchange::v1::Transaction,
     tx_index: usize,
     row: &mut substreams_database_change::tables::Row,
 ) {

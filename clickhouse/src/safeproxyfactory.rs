@@ -1,21 +1,21 @@
 use common::bytes_to_hex;
-use proto::pb::safeproxyfactory::v1 as safeproxyfactory;
+use proto::pb::safe_proxy_factory::v1 as safe_proxy_factory;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::tables::{Row, Tables};
 
 use crate::{logs::log_key, set_clock};
 
-pub fn process_events(tables: &mut Tables, clock: &Clock, events: &safeproxyfactory::Events) {
+pub fn process_events(tables: &mut Tables, clock: &Clock, events: &safe_proxy_factory::Events) {
     for (tx_index, tx) in events.transactions.iter().enumerate() {
         for (log_index, log) in tx.logs.iter().enumerate() {
             match &log.log {
-                Some(safeproxyfactory::log::Log::ProxyCreation(event)) => {
+                Some(safe_proxy_factory::log::Log::ProxyCreation(event)) => {
                     process_proxy_creation(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(safeproxyfactory::log::Log::ProxyCreationL2(event)) => {
+                Some(safe_proxy_factory::log::Log::ProxyCreationL2(event)) => {
                     process_proxy_creation_l2(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(safeproxyfactory::log::Log::ChainSpecificProxyCreationL2(event)) => {
+                Some(safe_proxy_factory::log::Log::ChainSpecificProxyCreationL2(event)) => {
                     process_chain_specific_proxy_creation_l2(
                         tables, clock, tx, log, tx_index, log_index, event,
                     );
@@ -29,11 +29,11 @@ pub fn process_events(tables: &mut Tables, clock: &Clock, events: &safeproxyfact
 fn process_proxy_creation(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &safeproxyfactory::Transaction,
-    log: &safeproxyfactory::Log,
+    tx: &safe_proxy_factory::Transaction,
+    log: &safe_proxy_factory::Log,
     tx_index: usize,
     log_index: usize,
-    event: &safeproxyfactory::ProxyCreation,
+    event: &safe_proxy_factory::ProxyCreation,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("safeproxyfactory_proxy_creation", key);
@@ -49,11 +49,11 @@ fn process_proxy_creation(
 fn process_proxy_creation_l2(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &safeproxyfactory::Transaction,
-    log: &safeproxyfactory::Log,
+    tx: &safe_proxy_factory::Transaction,
+    log: &safe_proxy_factory::Log,
     tx_index: usize,
     log_index: usize,
-    event: &safeproxyfactory::ProxyCreationL2,
+    event: &safe_proxy_factory::ProxyCreationL2,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("safeproxyfactory_proxy_creation_l2", key);
@@ -71,11 +71,11 @@ fn process_proxy_creation_l2(
 fn process_chain_specific_proxy_creation_l2(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &safeproxyfactory::Transaction,
-    log: &safeproxyfactory::Log,
+    tx: &safe_proxy_factory::Transaction,
+    log: &safe_proxy_factory::Log,
     tx_index: usize,
     log_index: usize,
-    event: &safeproxyfactory::ChainSpecificProxyCreationL2,
+    event: &safe_proxy_factory::ChainSpecificProxyCreationL2,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("safeproxyfactory_chain_specific_proxy_creation_l2", key);
@@ -91,7 +91,7 @@ fn process_chain_specific_proxy_creation_l2(
     row.set("chain_id", &event.chain_id);
 }
 
-fn set_safeproxyfactory_tx(tx: &safeproxyfactory::Transaction, tx_index: usize, row: &mut Row) {
+fn set_safeproxyfactory_tx(tx: &safe_proxy_factory::Transaction, tx_index: usize, row: &mut Row) {
     let tx_to = match &tx.to {
         Some(addr) => bytes_to_hex(addr),
         None => "".to_string(),
@@ -107,7 +107,7 @@ fn set_safeproxyfactory_tx(tx: &safeproxyfactory::Transaction, tx_index: usize, 
     row.set("tx_value", tx.value.to_string());
 }
 
-fn set_safeproxyfactory_log(log: &safeproxyfactory::Log, log_index: usize, row: &mut Row) {
+fn set_safeproxyfactory_log(log: &safe_proxy_factory::Log, log_index: usize, row: &mut Row) {
     row.set("log_index", log_index as u32);
     row.set("log_address", bytes_to_hex(&log.address));
     row.set("log_ordinal", log.ordinal);

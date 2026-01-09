@@ -16,27 +16,27 @@ use substreams_database_change::pb::database::DatabaseChanges;
 #[substreams::handlers::map]
 pub fn db_out(
     clock: Clock,
-    events_polymarket: proto::pb::polymarket::v1::Events,
+    events_ctf_exchange: proto::pb::ctf_exchange::v1::Events,
     events_erc1155: proto::pb::erc1155::v1::Events,
-    events_erc20transfers: proto::pb::erc20transfers::v1::Events,
-    events_erc20balances: proto::pb::erc20balances::v1::Events,
-    events_umactfadapter: proto::pb::umactfadapter::v1::Events,
-    events_negriskadapter: proto::pb::negriskadapter::v1::Events,
-    events_conditionaltokens: proto::pb::conditionaltokens::v1::Events,
-    events_safeproxyfactory: proto::pb::safeproxyfactory::v1::Events,
-    events_feemodule: proto::pb::feemodule::v1::Events,
+    events_erc20_transfers: proto::pb::erc20::transfers::v1::Events,
+    events_erc20_balances: proto::pb::erc20::balances::v1::Events,
+    events_uma_ctf_adapter: proto::pb::uma_ctf_adapter::v1::Events,
+    events_negrisk_adapter: proto::pb::negrisk_adapter::v1::Events,
+    events_conditional_tokens: proto::pb::conditional_tokens::v1::Events,
+    events_safe_proxy_factory: proto::pb::safe_proxy_factory::v1::Events,
+    events_fee_module: proto::pb::fee_module::v1::Events,
 ) -> Result<DatabaseChanges, Error> {
     let mut tables = substreams_database_change::tables::Tables::new();
 
-    ctfexchange::process_events(&mut tables, &clock, &events_polymarket);
+    ctfexchange::process_events(&mut tables, &clock, &events_ctf_exchange);
     erc1155::process_events(&mut tables, &clock, &events_erc1155);
-    erc20transfers::process_events(&mut tables, &clock, &events_erc20transfers);
-    erc20balances::process_events(&mut tables, &clock, &events_erc20balances);
-    umactfadapter::process_events(&mut tables, &clock, &events_umactfadapter);
-    negriskadapter::process_events(&mut tables, &clock, &events_negriskadapter);
-    conditionaltokens::process_events(&mut tables, &clock, &events_conditionaltokens);
-    safeproxyfactory::process_events(&mut tables, &clock, &events_safeproxyfactory);
-    feemodule::process_events(&mut tables, &clock, &events_feemodule);
+    erc20transfers::process_events(&mut tables, &clock, &events_erc20_transfers);
+    erc20balances::process_events(&mut tables, &clock, &events_erc20_balances);
+    umactfadapter::process_events(&mut tables, &clock, &events_uma_ctf_adapter);
+    negriskadapter::process_events(&mut tables, &clock, &events_negrisk_adapter);
+    conditionaltokens::process_events(&mut tables, &clock, &events_conditional_tokens);
+    safeproxyfactory::process_events(&mut tables, &clock, &events_safe_proxy_factory);
+    feemodule::process_events(&mut tables, &clock, &events_fee_module);
 
     // ONLY include blocks if events are present
     if !tables.tables.is_empty() {

@@ -13,7 +13,7 @@ binaries:
 
 protobuf:
   files:
-    - ctf_exchange.proto
+    - ctf-exchange.proto
   importPaths:
     - ../proto/v1/
   excludePaths:

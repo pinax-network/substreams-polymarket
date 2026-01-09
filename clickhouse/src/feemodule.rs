@@ -1,24 +1,24 @@
 use common::bytes_to_hex;
-use proto::pb::feemodule::v1 as feemodule;
+use proto::pb::fee_module::v1 as fee_module;
 use substreams::pb::substreams::Clock;
 use substreams_database_change::tables::{Row, Tables};
 
 use crate::{logs::log_key, set_clock};
 
-pub fn process_events(tables: &mut Tables, clock: &Clock, events: &feemodule::Events) {
+pub fn process_events(tables: &mut Tables, clock: &Clock, events: &fee_module::Events) {
     for (tx_index, tx) in events.transactions.iter().enumerate() {
         for (log_index, log) in tx.logs.iter().enumerate() {
             match &log.log {
-                Some(feemodule::log::Log::FeeRefunded(event)) => {
+                Some(fee_module::log::Log::FeeRefunded(event)) => {
                     process_fee_refunded(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(feemodule::log::Log::FeeWithdrawn(event)) => {
+                Some(fee_module::log::Log::FeeWithdrawn(event)) => {
                     process_fee_withdrawn(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(feemodule::log::Log::NewAdmin(event)) => {
+                Some(fee_module::log::Log::NewAdmin(event)) => {
                     process_new_admin(tables, clock, tx, log, tx_index, log_index, event);
                 }
-                Some(feemodule::log::Log::RemovedAdmin(event)) => {
+                Some(fee_module::log::Log::RemovedAdmin(event)) => {
                     process_removed_admin(tables, clock, tx, log, tx_index, log_index, event);
                 }
                 _ => {}
@@ -30,11 +30,11 @@ pub fn process_events(tables: &mut Tables, clock: &Clock, events: &feemodule::Ev
 fn process_fee_refunded(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &feemodule::Transaction,
-    log: &feemodule::Log,
+    tx: &fee_module::Transaction,
+    log: &fee_module::Log,
     tx_index: usize,
     log_index: usize,
-    event: &feemodule::FeeRefunded,
+    event: &fee_module::FeeRefunded,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("feemodule_fee_refunded", key);
@@ -53,11 +53,11 @@ fn process_fee_refunded(
 fn process_fee_withdrawn(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &feemodule::Transaction,
-    log: &feemodule::Log,
+    tx: &fee_module::Transaction,
+    log: &fee_module::Log,
     tx_index: usize,
     log_index: usize,
-    event: &feemodule::FeeWithdrawn,
+    event: &fee_module::FeeWithdrawn,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("feemodule_fee_withdrawn", key);
@@ -75,11 +75,11 @@ fn process_fee_withdrawn(
 fn process_new_admin(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &feemodule::Transaction,
-    log: &feemodule::Log,
+    tx: &fee_module::Transaction,
+    log: &fee_module::Log,
     tx_index: usize,
     log_index: usize,
-    event: &feemodule::NewAdmin,
+    event: &fee_module::NewAdmin,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("feemodule_new_admin", key);
@@ -95,11 +95,11 @@ fn process_new_admin(
 fn process_removed_admin(
     tables: &mut Tables,
     clock: &Clock,
-    tx: &feemodule::Transaction,
-    log: &feemodule::Log,
+    tx: &fee_module::Transaction,
+    log: &fee_module::Log,
     tx_index: usize,
     log_index: usize,
-    event: &feemodule::RemovedAdmin,
+    event: &fee_module::RemovedAdmin,
 ) {
     let key = log_key(clock, log.ordinal);
     let row = tables.create_row("feemodule_removed_admin", key);
@@ -112,7 +112,7 @@ fn process_removed_admin(
     row.set("removed_admin", bytes_to_hex(&event.removed_admin));
 }
 
-fn set_feemodule_tx(tx: &feemodule::Transaction, tx_index: usize, row: &mut Row) {
+fn set_feemodule_tx(tx: &fee_module::Transaction, tx_index: usize, row: &mut Row) {
     let tx_to = match &tx.to {
         Some(addr) => bytes_to_hex(addr),
         None => "".to_string(),
@@ -128,7 +128,7 @@ fn set_feemodule_tx(tx: &feemodule::Transaction, tx_index: usize, row: &mut Row)
     row.set("tx_value", tx.value.to_string());
 }
 
-fn set_feemodule_log(log: &feemodule::Log, log_index: usize, row: &mut Row) {
+fn set_feemodule_log(log: &fee_module::Log, log_index: usize, row: &mut Row) {
     row.set("log_index", log_index as u32);
     row.set("log_address", bytes_to_hex(&log.address));
     row.set("log_ordinal", log.ordinal);
