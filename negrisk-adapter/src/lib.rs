@@ -1,5 +1,5 @@
 use common::{CreateLog, CreateTransaction};
-use proto::pb::negriskadapter::v1 as pb;
+use proto::pb::negrisk_adapter::v1 as pb;
 use substreams::Hex;
 use substreams_abis::evm::polymarket::negriskadapter::events as events;
 use substreams_ethereum::pb::eth::v2::Block;

@@ -3,8 +3,8 @@ mod calls;
 use std::collections::HashSet;
 
 use calls::batch_balance_of;
-use proto::pb::erc20balances::v1 as pb;
-use proto::pb::erc20transfers::v1 as transfers;
+use proto::pb::erc20::balances::v1 as pb;
+use proto::pb::erc20::transfers::v1 as transfers;
 
 pub type Address = Vec<u8>;
 

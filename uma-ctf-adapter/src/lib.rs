@@ -1,5 +1,5 @@
 use common::{CreateLog, CreateTransaction};
-use proto::pb::umactfadapter::v1 as pb;
+use proto::pb::uma_ctf_adapter::v1 as pb;
 use substreams::Hex;
 use substreams_abis::evm::polymarket::umactfadapter::v3::events as events;
 use substreams_ethereum::pb::eth::v2::Block;

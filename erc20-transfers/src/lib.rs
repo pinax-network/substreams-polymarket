@@ -1,5 +1,5 @@
 use common::{CreateLog, CreateTransaction};
-use proto::pb::erc20transfers::v1 as pb;
+use proto::pb::erc20::transfers::v1 as pb;
 use substreams::Hex;
 use substreams_abis::evm::token::erc20::events;
 use substreams_abis::evm::tokens::weth::events as weth_events;

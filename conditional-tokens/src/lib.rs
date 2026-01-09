@@ -1,5 +1,5 @@
 use common::{CreateLog, CreateTransaction};
-use proto::pb::conditionaltokens::v1 as pb;
+use proto::pb::conditional_tokens::v1 as pb;
 use substreams::Hex;
 use substreams_ethereum::pb::eth::v2::Block;
 

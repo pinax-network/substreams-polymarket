@@ -1,4 +1,4 @@
-use proto::pb::polymarket::v1 as pb;
+use proto::pb::ctf_exchange::v1 as pb;
 use substreams::store::StoreSetProto;
 use substreams::{prelude::*, Hex};
 
