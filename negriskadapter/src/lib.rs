@@ -1,12 +1,14 @@
 use common::{CreateLog, CreateTransaction};
 use proto::pb::negriskadapter::v1 as pb;
+use substreams::Hex;
 use substreams_abis::evm::polymarket::negriskadapter::events as events;
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 
 #[substreams::handlers::map]
-fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
+fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::errors::Error> {
     let mut events_output = pb::Events::default();
+    let matcher = substreams::expr_matcher(&params);
     let mut total_market_prepared = 0;
     let mut total_new_admin = 0;
     let mut total_outcome_reported = 0;
@@ -21,6 +23,11 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
         let mut transaction = pb::Transaction::create_transaction(trx);
         for log_view in trx.receipt().logs() {
             let log = log_view.log;
+
+            // Skip logs that don't match the filter (if params provided)
+            if !matcher.matches_keys(&vec![format!("evt_addr:0x{}", Hex::encode(&log.address))]) {
+                continue;
+            }
 
             // MarketPrepared event
             if let Some(event) = events::MarketPrepared::match_and_decode(log) {

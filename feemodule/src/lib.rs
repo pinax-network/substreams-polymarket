@@ -1,12 +1,14 @@
 use common::{CreateLog, CreateTransaction};
 use proto::pb::feemodule::v1 as pb;
+use substreams::Hex;
 use substreams_abis::evm::polymarket::feemodule::events as events;
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 
 #[substreams::handlers::map]
-fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
+fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::errors::Error> {
     let mut events_output = pb::Events::default();
+    let matcher = substreams::expr_matcher(&params);
     let mut total_fee_refunded = 0;
     let mut total_fee_withdrawn = 0;
     let mut total_new_admin = 0;
@@ -16,6 +18,11 @@ fn map_events(block: Block) -> Result<pb::Events, substreams::errors::Error> {
         let mut transaction = pb::Transaction::create_transaction(trx);
         for log_view in trx.receipt().logs() {
             let log = log_view.log;
+
+            // Skip logs that don't match the filter (if params provided)
+            if !matcher.matches_keys(&vec![format!("evt_addr:0x{}", Hex::encode(&log.address))]) {
+                continue;
+            }
 
             // FeeRefunded event
             if let Some(event) = events::FeeRefunded::match_and_decode(log) {
