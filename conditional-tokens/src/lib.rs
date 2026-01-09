@@ -45,7 +45,11 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
                     oracle: event.oracle.to_vec(),
                     question_id: event.question_id.to_vec(),
                     outcome_slot_count: event.outcome_slot_count.to_string(),
-                    payout_numerators: event.payout_numerators.iter().map(|n| n.to_string()).collect(),
+                    payout_numerators: event
+                        .payout_numerators
+                        .iter()
+                        .map(|n| n.to_string())
+                        .collect(),
                 });
                 transaction.logs.push(pb::Log::create_log(log, event));
             }
