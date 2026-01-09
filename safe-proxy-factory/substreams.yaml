@@ -27,3 +27,7 @@ modules:
       type: proto:safe_proxy_factory.v1.Events
 
 network: polygon
+
+params:
+  # Safe Factory
+  map_events: "evt_addr:0xaacfeea03eb1561c4e67d661e40682bd20e3541b"

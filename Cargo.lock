@@ -118,10 +118,9 @@ name = "conditional-tokens"
 version = "0.0.0"
 dependencies = [
  "common",
- "hex-literal 0.4.1",
- "primitive-types 0.12.2",
  "proto",
  "substreams",
+ "substreams-abis",
  "substreams-ethereum",
 ]
 
