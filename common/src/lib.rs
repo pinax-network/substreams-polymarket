@@ -67,11 +67,6 @@ mod ctf_exchange_impl {
     impl_create_log_and_transaction!(proto::pb::ctf_exchange::v1);
 }
 
-mod erc1155_impl {
-    use super::*;
-    impl_create_log_and_transaction!(proto::pb::erc1155::v1);
-}
-
 mod uma_ctf_adapter_impl {
     use super::*;
     impl_create_log_and_transaction!(proto::pb::uma_ctf_adapter::v1);
@@ -95,9 +90,4 @@ mod safe_proxy_factory_impl {
 mod fee_module_impl {
     use super::*;
     impl_create_log_and_transaction!(proto::pb::fee_module::v1);
-}
-
-mod erc20_transfers_impl {
-    use super::*;
-    impl_create_log_and_transaction!(proto::pb::erc20::transfers::v1);
 }
