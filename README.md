@@ -14,7 +14,7 @@
 - [ ] Orders
 - [ ] Positions
 - [ ] Activity
-- [ ] Open Interest
+- [x] Open Interest
 - [ ] PNL
 
 | Smart contract name                                 | EVM address                                |
@@ -137,3 +137,46 @@ Events from the UMA CTF Adapter contract for question initialization and resolut
 | QuestionUnpaused | Emitted when a question is unpaused |
 | RemovedAdmin | Emitted when an admin is removed |
 | QuestionUnflagged | Emitted when a question is unflagged (V3 only) |
+
+## Clickhouse Aggregated State
+
+The following tables describe the aggregated state available in Clickhouse.
+
+### Open Interest
+
+Aggregated Open Interest calculated from `conditionaltokens_position_split` and `conditionaltokens_positions_merge` events.
+
+| Table | Description |
+| ----- | ----------- |
+| state_open_interest | Open Interest aggregated by time interval (1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w) |
+
+**Key Fields:**
+- `parent_collection_id`: Parent collection ID (bytes32). Global OI uses the zero bytes32 (`0x` followed by 64 zeros)
+- `condition_id`: Condition ID for market-specific OI
+- `net_open_interest`: Net open interest change (splits - merges)
+- `split_amount`: Total split amount (increases OI)
+- `merge_amount`: Total merge amount (decreases OI)
+
+**Query Examples:**
+
+```sql
+-- Get Market Open Interest for a specific condition at 1-hour intervals
+SELECT
+    timestamp,
+    sum(net_open_interest) AS open_interest
+FROM state_open_interest
+WHERE interval_min = 60
+  AND condition_id = '0x...'
+GROUP BY timestamp
+ORDER BY timestamp;
+
+-- Get Global Open Interest at daily intervals
+SELECT
+    timestamp,
+    sum(net_open_interest) AS global_open_interest
+FROM state_open_interest
+WHERE interval_min = 1440
+  AND parent_collection_id = '0x0000000000000000000000000000000000000000000000000000000000000000'
+GROUP BY timestamp
+ORDER BY timestamp;
+```
