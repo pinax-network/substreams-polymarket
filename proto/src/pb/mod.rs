@@ -43,6 +43,13 @@ pub mod fee_module {
         // @@protoc_insertion_point(fee_module.v1)
     }
 }
+pub mod fpmm_factory {
+    // @@protoc_insertion_point(attribute:fpmm_factory.v1)
+    pub mod v1 {
+        include!("fpmm_factory.v1.rs");
+        // @@protoc_insertion_point(fpmm_factory.v1)
+    }
+}
 pub mod negrisk_adapter {
     // @@protoc_insertion_point(attribute:negrisk_adapter.v1)
     pub mod v1 {

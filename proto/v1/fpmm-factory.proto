@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package fpmm_factory.v1;
+
+message Events { repeated Transaction transactions = 1; }
+
+message Transaction {
+  bytes hash = 1;
+  bytes from = 2;
+  optional bytes to = 3;
+  uint64 nonce = 5;
+  string gas_price = 6; // uint256
+  uint64 gas_limit = 7;
+  uint64 gas_used = 8;
+  string value = 9; // uint256
+  repeated Log logs = 10;
+}
+
+// FixedProductMarketMakerFactory events
+message Log {
+  bytes address = 1;
+  uint64 ordinal = 2;
+  repeated bytes topics = 3;
+  bytes data = 4;
+  oneof log {
+    // Factory events
+    FixedProductMarketMakerCreation fixed_product_market_maker_creation = 10;
+  }
+}
+
+// FixedProductMarketMakerCreation event
+message FixedProductMarketMakerCreation {
+  bytes creator = 1; // address (indexed)
+  bytes fixed_product_market_maker = 2; // address
+  bytes conditional_tokens = 3; // address (indexed)
+  bytes collateral_token = 4; // address (indexed)
+  repeated bytes condition_ids = 5; // bytes32[]
+  string fee = 6; // uint256
+}

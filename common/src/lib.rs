@@ -91,3 +91,8 @@ mod fee_module_impl {
     use super::*;
     impl_create_log_and_transaction!(proto::pb::fee_module::v1);
 }
+
+mod fpmm_factory_impl {
+    use super::*;
+    impl_create_log_and_transaction!(proto::pb::fpmm_factory::v1);
+}

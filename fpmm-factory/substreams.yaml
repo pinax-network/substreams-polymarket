@@ -1,0 +1,33 @@
+specVersion: v0.1.0
+package:
+  name: fpmm_factory
+  version: v0.1.0
+  url: https://github.com/pinax-network/substreams-polymarket
+  description: FixedProductMarketMakerFactory events substreams package
+  image: ../image.png
+
+protobuf:
+  files:
+    - fpmm-factory.proto
+  importPaths:
+    - ../proto/v1
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ../target/wasm32-unknown-unknown/release/fpmm_factory.wasm
+
+modules:
+  - name: map_events
+    kind: map
+    inputs:
+      - params: string
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:fpmm_factory.v1.Events
+
+network: polygon
+
+params:
+  # FixedProductMarketMaker Factory
+  map_events: ""
