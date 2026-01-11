@@ -12,8 +12,7 @@
 ## Data Features
 
 - [x] Orders (OrderBook)
-- [ ] Positions
-- [ ] Activity
+- [x] Activity
 - [x] Open Interest
 - [x] PNL
 
@@ -151,6 +150,7 @@ Aggregated Open Interest calculated from `conditionaltokens_position_split` and 
 | state_open_interest | Open Interest aggregated by time interval (1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w) |
 
 **Key Fields:**
+
 - `parent_collection_id`: Parent collection ID (bytes32). Global OI uses the zero bytes32 (`0x` followed by 64 zeros)
 - `condition_id`: Condition ID for market-specific OI
 - `net_open_interest`: Net open interest change (splits - merges)
@@ -191,6 +191,7 @@ Aggregated OrderBook metrics calculated from `ctfexchange_orders_matched` events
 | view_orders_matched_global | Global OrdersMatched aggregated across all order books |
 
 **Key Fields:**
+
 - `asset_id`: Token ID (the asset being traded, organized as the smallest aggregating market)
 - `trades_quantity`: Number of trades of any kind against this order book
 - `buys_quantity`: Number of purchases of shares from this order book
@@ -200,8 +201,10 @@ Aggregated OrderBook metrics calculated from `ctfexchange_orders_matched` events
 - `collateral_sell_volume`: Volume of share sales in USDC base units
 
 **Trade Classification:**
+
 - **BUY**: Taker pays USDC (taker_asset_id = 0) to receive shares
 - **SELL**: Taker receives USDC (maker_asset_id = 0) by selling shares
+
 ### User Position / PNL
 
 User position and PNL tracking from exchange trades and conditional token operations.
@@ -213,6 +216,7 @@ Reference: [Polymarket PNL Subgraph](https://github.com/Polymarket/polymarket-su
 | state_user_condition_position | User positions from splits, merges, redemptions, conversions by condition_id, aggregated by time interval |
 
 **state_user_position Key Fields:**
+
 - `user`: User address
 - `token_id`: Token ID (position ID)
 - `buy_amount`: Total amount bought in window
@@ -222,6 +226,7 @@ Reference: [Polymarket PNL Subgraph](https://github.com/Polymarket/polymarket-su
 - `sell_revenue`: Total revenue from sells in USDC
 
 **state_user_condition_position Key Fields:**
+
 - `user`: User address
 - `condition_id`: Condition ID (bytes32)
 - `split_amount`: Total amount from splits (entry at 50 cents)
