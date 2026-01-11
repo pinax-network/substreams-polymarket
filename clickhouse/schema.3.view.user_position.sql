@@ -20,7 +20,8 @@ SELECT
     -- Cost basis tracking --
     sum(buy_cost) AS buy_cost,
     sum(sell_revenue) AS sell_revenue,
-    -- Realized PNL (sell_revenue - proportional buy_cost) approximation --
+    -- Realized PNL approximation: net cash flow (sell_revenue - buy_cost) --
+    -- Note: This is a simplified calculation, not true FIFO/LIFO cost basis PNL
     sum(state_user_position.sell_revenue) - sum(state_user_position.buy_cost) AS realized_pnl,
     -- Scaled amounts (USDC has 6 decimals, so divide by 10^6) --
     toFloat64(sum(state_user_position.buy_amount)) / 1000000.0 AS scaled_buy_amount,

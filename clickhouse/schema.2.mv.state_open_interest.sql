@@ -6,12 +6,12 @@
 -- State Open Interest Table --
 CREATE TABLE IF NOT EXISTS state_open_interest (
     -- bar interval --
-    timestamp               DateTime('UTC', 0) COMMENT 'beginning of the bar',
+    timestamp               DateTime(0, 'UTC') COMMENT 'beginning of the bar',
     interval_min            UInt16 DEFAULT 1 COMMENT 'bar interval in minutes (1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w)',
 
     -- timestamp & block number --
-    min_timestamp           SimpleAggregateFunction(min, DateTime('UTC', 0)) COMMENT 'first timestamp seen',
-    max_timestamp           SimpleAggregateFunction(max, DateTime('UTC', 0)) COMMENT 'last timestamp seen',
+    min_timestamp           SimpleAggregateFunction(min, DateTime(0, 'UTC')) COMMENT 'first timestamp seen',
+    max_timestamp           SimpleAggregateFunction(max, DateTime(0, 'UTC')) COMMENT 'last timestamp seen',
     min_block_num           SimpleAggregateFunction(min, UInt32) COMMENT 'first block number seen',
     max_block_num           SimpleAggregateFunction(max, UInt32) COMMENT 'last block number seen',
 
