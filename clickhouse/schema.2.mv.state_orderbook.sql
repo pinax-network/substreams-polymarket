@@ -145,6 +145,7 @@ GROUP BY
 -- Global metrics aggregated across all order books
 -- This is a convenience view that aggregates all asset_ids
 -- Can be used to get global statistics without GROUP BY asset_id
+-- Note: USDC has 6 decimals, so divide by 10^6 (1000000.0) to get scaled volumes
 CREATE VIEW IF NOT EXISTS view_orders_matched_global AS
 SELECT
     timestamp,
@@ -162,7 +163,7 @@ SELECT
     sum(collateral_volume) AS collateral_volume,
     sum(collateral_buy_volume) AS collateral_buy_volume,
     sum(collateral_sell_volume) AS collateral_sell_volume,
-    -- Scaled volumes (divide by 10^6 for USDC decimals) --
+    -- Scaled volumes (USDC has 6 decimals, so divide by 10^6) --
     toFloat64(sum(collateral_volume)) / 1000000.0 AS scaled_collateral_volume,
     toFloat64(sum(collateral_buy_volume)) / 1000000.0 AS scaled_collateral_buy_volume,
     toFloat64(sum(collateral_sell_volume)) / 1000000.0 AS scaled_collateral_sell_volume
