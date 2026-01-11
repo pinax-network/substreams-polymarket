@@ -81,8 +81,8 @@ SELECT
 
     -- Unique stakeholders --
     uniqState(stakeholder) AS uniq_stakeholders
+-- Splits: increase OI --
 FROM (
-    -- Splits: increase OI --
     SELECT
         timestamp,
         block_num,
