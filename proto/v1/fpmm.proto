@@ -28,8 +28,6 @@ message Log {
     FPMMFundingRemoved fpmm_funding_removed = 11;
     FPMMBuy fpmm_buy = 12;
     FPMMSell fpmm_sell = 13;
-    Transfer transfer = 14;
-    Approval approval = 15;
   }
 }
 
@@ -64,18 +62,4 @@ message FPMMSell {
   string fee_amount = 3; // uint256
   string outcome_index = 4; // uint256 (indexed)
   string outcome_tokens_sold = 5; // uint256
-}
-
-// Transfer event (ERC20)
-message Transfer {
-  bytes from = 1; // address (indexed)
-  bytes to = 2; // address (indexed)
-  string value = 3; // uint256
-}
-
-// Approval event (ERC20)
-message Approval {
-  bytes owner = 1; // address (indexed)
-  bytes spender = 2; // address (indexed)
-  string value = 3; // uint256
 }

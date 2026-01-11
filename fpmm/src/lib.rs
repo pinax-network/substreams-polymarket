@@ -13,8 +13,6 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     let mut total_fpmm_funding_removed = 0;
     let mut total_fpmm_buy = 0;
     let mut total_fpmm_sell = 0;
-    let mut total_transfer = 0;
-    let mut total_approval = 0;
 
     for trx in block.transactions() {
         let mut transaction = pb::Transaction::create_transaction(trx);
@@ -80,30 +78,6 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
                 transaction.logs.push(pb::Log::create_log(log, event));
                 continue;
             }
-
-            // Transfer event
-            if let Some(event) = events::Transfer::match_and_decode(log) {
-                total_transfer += 1;
-                let event = pb::log::Log::Transfer(pb::Transfer {
-                    from: event.from.to_vec(),
-                    to: event.to.to_vec(),
-                    value: event.value.to_string(),
-                });
-                transaction.logs.push(pb::Log::create_log(log, event));
-                continue;
-            }
-
-            // Approval event
-            if let Some(event) = events::Approval::match_and_decode(log) {
-                total_approval += 1;
-                let event = pb::log::Log::Approval(pb::Approval {
-                    owner: event.owner.to_vec(),
-                    spender: event.spender.to_vec(),
-                    value: event.value.to_string(),
-                });
-                transaction.logs.push(pb::Log::create_log(log, event));
-                continue;
-            }
         }
 
         if !transaction.logs.is_empty() {
@@ -123,8 +97,6 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     );
     substreams::log::info!("Total FPMMBuy events: {}", total_fpmm_buy);
     substreams::log::info!("Total FPMMSell events: {}", total_fpmm_sell);
-    substreams::log::info!("Total Transfer events: {}", total_transfer);
-    substreams::log::info!("Total Approval events: {}", total_approval);
 
     Ok(events_output)
 }

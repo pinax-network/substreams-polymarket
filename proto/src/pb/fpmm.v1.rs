@@ -42,7 +42,7 @@ pub struct Log {
     pub topics: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     #[prost(bytes="vec", tag="4")]
     pub data: ::prost::alloc::vec::Vec<u8>,
-    #[prost(oneof="log::Log", tags="10, 11, 12, 13, 14, 15")]
+    #[prost(oneof="log::Log", tags="10, 11, 12, 13")]
     pub log: ::core::option::Option<log::Log>,
 }
 /// Nested message and enum types in `Log`.
@@ -59,10 +59,6 @@ pub mod log {
         FpmmBuy(super::FpmmBuy),
         #[prost(message, tag="13")]
         FpmmSell(super::FpmmSell),
-        #[prost(message, tag="14")]
-        Transfer(super::Transfer),
-        #[prost(message, tag="15")]
-        Approval(super::Approval),
     }
 }
 /// FPMMFundingAdded event
@@ -135,33 +131,5 @@ pub struct FpmmSell {
     /// uint256
     #[prost(string, tag="5")]
     pub outcome_tokens_sold: ::prost::alloc::string::String,
-}
-/// Transfer event (ERC20)
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Transfer {
-    /// address (indexed)
-    #[prost(bytes="vec", tag="1")]
-    pub from: ::prost::alloc::vec::Vec<u8>,
-    /// address (indexed)
-    #[prost(bytes="vec", tag="2")]
-    pub to: ::prost::alloc::vec::Vec<u8>,
-    /// uint256
-    #[prost(string, tag="3")]
-    pub value: ::prost::alloc::string::String,
-}
-/// Approval event (ERC20)
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Approval {
-    /// address (indexed)
-    #[prost(bytes="vec", tag="1")]
-    pub owner: ::prost::alloc::vec::Vec<u8>,
-    /// address (indexed)
-    #[prost(bytes="vec", tag="2")]
-    pub spender: ::prost::alloc::vec::Vec<u8>,
-    /// uint256
-    #[prost(string, tag="3")]
-    pub value: ::prost::alloc::string::String,
 }
 // @@protoc_insertion_point(module)
