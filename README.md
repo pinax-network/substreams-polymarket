@@ -254,7 +254,8 @@ GROUP BY timestamp
 ORDER BY timestamp;
 
 -- Calculate approximate PNL from exchange trades
--- (realized_pnl = sell_revenue - proportional_buy_cost)
+-- WARNING: This is an approximation. True PNL requires tracking avg_price per position
+-- which needs stateful computation. This uses weighted average cost basis.
 SELECT
     user,
     token_id,
@@ -262,10 +263,12 @@ SELECT
     sum(sell_amount) AS total_sold,
     sum(buy_cost) AS total_buy_cost,
     sum(sell_revenue) AS total_sell_revenue,
-    -- Approximate realized PNL (assumes FIFO-like cost basis)
-    sum(sell_revenue) - (sum(buy_cost) * sum(sell_amount) / nullIf(sum(buy_amount), 0)) AS approx_realized_pnl
+    -- Weighted average price = total_buy_cost / total_bought
+    sum(buy_cost) / nullIf(sum(buy_amount), 0) AS avg_buy_price,
+    -- Gross PNL: total_sell_revenue - total_buy_cost (only accurate if position is fully closed)
+    sum(sell_revenue) - sum(buy_cost) AS gross_pnl
 FROM state_user_position
 WHERE interval_min = 1
 GROUP BY user, token_id
-HAVING sum(sell_amount) > 0;
+HAVING sum(buy_amount) > 0;
 ```

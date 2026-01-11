@@ -324,17 +324,20 @@ FROM (
 
     -- NegRiskAdapter Positions Converted
     -- Note: Conversions involve complex token swaps between YES/NO positions
-    -- market_id is used instead of condition_id for conversions
+    -- market_id is used instead of condition_id for conversions since this event
+    -- operates at the market level (multi-question markets). The market_id identifies
+    -- the neg-risk market containing multiple conditions/questions.
+    -- WARNING: Do not join with other sources on condition_id when convert_count > 0
     SELECT
         timestamp,
         block_num,
         stakeholder AS user,
-        market_id AS condition_id,  -- using market_id as the grouping key
+        market_id AS condition_id,  -- market_id identifies the neg-risk market (different from condition_id)
         toInt256(0) AS split_amount,
         toInt256(0) AS merge_amount,
         toInt256(0) AS redeem_payout,
         toInt256(amount) AS convert_amount,
-        toInt256(0) AS net_amount,  -- net is 0 as it's a conversion
+        toInt256(0) AS net_amount,  -- net is 0 as it's a conversion between positions
         toUInt64(0) AS is_split,
         toUInt64(0) AS is_merge,
         toUInt64(0) AS is_redeem,
