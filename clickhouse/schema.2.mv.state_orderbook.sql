@@ -52,7 +52,7 @@ COMMENT 'OrderBook for Polymarket assets, aggregated by interval. Global metrics
 -- Materialized View for OrderBook from OrdersMatched events --
 -- OrdersMatched events contain:
 -- - taker_order_hash: Taker order hash
--- - taker_order_maker: Taker order maker address  
+-- - taker_order_maker: Taker order maker address
 -- - maker_asset_id: Maker asset token ID (UInt256)
 -- - taker_asset_id: Taker asset token ID (UInt256)
 -- - maker_amount_filled: Maker amount filled (UInt256)
@@ -67,7 +67,7 @@ TO state_orderbook
 AS
 WITH
     -- predefined intervals --
-    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w --
     [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
 SELECT
     arrayJoin(intervals) AS interval_min,
@@ -96,20 +96,21 @@ SELECT
     -- Unique participants --
     uniqState(maker) AS uniq_makers,
     uniqState(taker) AS uniq_takers
+
+-- Each OrdersMatched event represents a trade --
+-- We determine if it's a buy or sell based on which asset is USDC (token ID 0) --
+-- and we extract the non-USDC asset as the asset_id --
 FROM (
-    -- Each OrdersMatched event represents a trade
-    -- We determine if it's a buy or sell based on which asset is USDC (token ID 0)
-    -- and we extract the non-USDC asset as the asset_id
     SELECT
         timestamp,
         block_num,
-        -- The asset being traded is the non-USDC token
-        -- If taker_asset_id is 0 (USDC), the traded asset is maker_asset_id (BUY)
-        -- If maker_asset_id is 0 (USDC), the traded asset is taker_asset_id (SELL)
+        -- The asset being traded is the non-USDC token --
+        -- If taker_asset_id is 0 (USDC), the traded asset is maker_asset_id (BUY) --
+        -- If maker_asset_id is 0 (USDC), the traded asset is taker_asset_id (SELL) --
         toString(
             if(taker_asset_id = 0, maker_asset_id, taker_asset_id)
         ) AS asset_id,
-        -- Trade classification
+        -- Trade classification --
         toUInt64(1) AS trades_count,
         -- BUY: taker pays USDC (taker_asset_id = 0) to receive shares
         toUInt64(if(taker_asset_id = 0, 1, 0)) AS is_buy,
@@ -164,9 +165,9 @@ SELECT
     sum(collateral_buy_volume) AS collateral_buy_volume,
     sum(collateral_sell_volume) AS collateral_sell_volume,
     -- Scaled volumes (USDC has 6 decimals, so divide by 10^6) --
-    toFloat64(sum(collateral_volume)) / 1000000.0 AS scaled_collateral_volume,
-    toFloat64(sum(collateral_buy_volume)) / 1000000.0 AS scaled_collateral_buy_volume,
-    toFloat64(sum(collateral_sell_volume)) / 1000000.0 AS scaled_collateral_sell_volume
+    toFloat64(sum(state_orderbook.collateral_volume)) / 1000000.0 AS scaled_collateral_volume,
+    toFloat64(sum(state_orderbook.collateral_buy_volume)) / 1000000.0 AS scaled_collateral_buy_volume,
+    toFloat64(sum(state_orderbook.collateral_sell_volume)) / 1000000.0 AS scaled_collateral_sell_volume
 FROM state_orderbook
 GROUP BY
     interval_min,
