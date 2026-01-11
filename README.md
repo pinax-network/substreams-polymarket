@@ -15,7 +15,7 @@
 - [ ] Positions
 - [ ] Activity
 - [x] Open Interest
-- [ ] PNL
+- [x] PNL
 
 | Smart contract name                                 | EVM address                                |
 | --------------------------------------------------- | ------------------------------------------ |
@@ -202,6 +202,32 @@ Aggregated OrderBook metrics calculated from `ctfexchange_orders_matched` events
 **Trade Classification:**
 - **BUY**: Taker pays USDC (taker_asset_id = 0) to receive shares
 - **SELL**: Taker receives USDC (maker_asset_id = 0) by selling shares
+### User Position / PNL
+
+User position and PNL tracking from exchange trades and conditional token operations.
+Reference: [Polymarket PNL Subgraph](https://github.com/Polymarket/polymarket-subgraph/tree/main/pnl-subgraph)
+
+| Table | Description |
+| ----- | ----------- |
+| state_user_position | User positions from exchange trades (OrderFilled) with exact token_id, aggregated by time interval |
+| state_user_condition_position | User positions from splits, merges, redemptions, conversions by condition_id, aggregated by time interval |
+
+**state_user_position Key Fields:**
+- `user`: User address
+- `token_id`: Token ID (position ID)
+- `buy_amount`: Total amount bought in window
+- `sell_amount`: Total amount sold in window
+- `net_amount`: Net amount change (buy - sell)
+- `buy_cost`: Total cost of buys in USDC
+- `sell_revenue`: Total revenue from sells in USDC
+
+**state_user_condition_position Key Fields:**
+- `user`: User address
+- `condition_id`: Condition ID (bytes32)
+- `split_amount`: Total amount from splits (entry at 50 cents)
+- `merge_amount`: Total amount from merges (exit at 50 cents)
+- `redeem_payout`: Total payout from redemptions
+- `convert_amount`: Total amount from conversions
 
 **Query Examples:**
 
@@ -241,4 +267,64 @@ SELECT
     toFloat64(sum(collateral_volume)) / 1000000.0 AS total_scaled_collateral_volume
 FROM state_orderbook
 WHERE interval_min = 1;
+-- Get user's trading activity for a specific token at 1-hour intervals
+SELECT
+    timestamp,
+    sum(buy_amount) AS total_bought,
+    sum(sell_amount) AS total_sold,
+    sum(net_amount) AS net_position,
+    sum(buy_cost) AS total_cost,
+    sum(sell_revenue) AS total_revenue
+FROM state_user_position
+WHERE interval_min = 60
+  AND user = '0x...'
+  AND token_id = 12345
+GROUP BY timestamp
+ORDER BY timestamp;
+
+-- Get cumulative position for a user across all time
+SELECT
+    user,
+    token_id,
+    sum(net_amount) AS current_position,
+    sum(buy_cost) AS total_invested,
+    sum(sell_revenue) AS total_revenue,
+    sum(sell_revenue) - sum(buy_cost) AS realized_pnl
+FROM state_user_position
+WHERE interval_min = 1  -- Use smallest interval for most granular data
+  AND user = '0x...'
+GROUP BY user, token_id;
+
+-- Get user's condition-based activity (splits/merges/redemptions)
+SELECT
+    timestamp,
+    sum(split_amount) AS total_split,
+    sum(merge_amount) AS total_merged,
+    sum(redeem_payout) AS total_redeemed,
+    sum(net_amount) AS net_position
+FROM state_user_condition_position
+WHERE interval_min = 1440  -- Daily intervals
+  AND user = '0x...'
+  AND condition_id = '0x...'
+GROUP BY timestamp
+ORDER BY timestamp;
+
+-- Calculate approximate PNL from exchange trades
+-- WARNING: This is an approximation. True PNL requires tracking avg_price per position
+-- which needs stateful computation. This uses weighted average cost basis.
+SELECT
+    user,
+    token_id,
+    sum(buy_amount) AS total_bought,
+    sum(sell_amount) AS total_sold,
+    sum(buy_cost) AS total_buy_cost,
+    sum(sell_revenue) AS total_sell_revenue,
+    -- Weighted average price = total_buy_cost / total_bought
+    sum(buy_cost) / nullIf(sum(buy_amount), 0) AS avg_buy_price,
+    -- Gross PNL: total_sell_revenue - total_buy_cost (only accurate if position is fully closed)
+    sum(sell_revenue) - sum(buy_cost) AS gross_pnl
+FROM state_user_position
+WHERE interval_min = 1
+GROUP BY user, token_id
+HAVING sum(buy_amount) > 0;
 ```
