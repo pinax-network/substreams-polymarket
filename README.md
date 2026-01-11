@@ -151,7 +151,7 @@ Aggregated Open Interest calculated from `conditionaltokens_position_split` and 
 | state_open_interest | Open Interest aggregated by time interval (1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w) |
 
 **Key Fields:**
-- `parent_collection_id`: Parent collection ID. Global OI uses `0x0000000000000000000000000000000000000000000000000000000000000000`
+- `parent_collection_id`: Parent collection ID (bytes32). Global OI uses the zero bytes32 (`0x` followed by 64 zeros)
 - `condition_id`: Condition ID for market-specific OI
 - `net_open_interest`: Net open interest change (splits - merges)
 - `split_amount`: Total split amount (increases OI)
