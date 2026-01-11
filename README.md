@@ -15,7 +15,6 @@
 - [x] Activity
 - [x] Open Interest
 - [x] PNL
-- [x] FPMM
 
 | Smart contract name                                 | EVM address                                |
 | --------------------------------------------------- | ------------------------------------------ |

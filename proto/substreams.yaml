@@ -7,9 +7,6 @@ protobuf:
   files:
     - v1/conditional-tokens.proto
     - v1/ctf-exchange.proto
-    - v1/erc20-balances.proto
-    - v1/erc20-transfers.proto
-    - v1/erc1155.proto
     - v1/fee-module.proto
     - v1/negrisk-adapter.proto
     - v1/safe-proxy-factory.proto

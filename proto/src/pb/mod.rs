@@ -13,41 +13,11 @@ pub mod ctf_exchange {
         // @@protoc_insertion_point(ctf_exchange.v1)
     }
 }
-pub mod erc1155 {
-    // @@protoc_insertion_point(attribute:erc1155.v1)
-    pub mod v1 {
-        include!("erc1155.v1.rs");
-        // @@protoc_insertion_point(erc1155.v1)
-    }
-}
-pub mod erc20 {
-    pub mod balances {
-        // @@protoc_insertion_point(attribute:erc20.balances.v1)
-        pub mod v1 {
-            include!("erc20.balances.v1.rs");
-            // @@protoc_insertion_point(erc20.balances.v1)
-        }
-    }
-    pub mod transfers {
-        // @@protoc_insertion_point(attribute:erc20.transfers.v1)
-        pub mod v1 {
-            include!("erc20.transfers.v1.rs");
-            // @@protoc_insertion_point(erc20.transfers.v1)
-        }
-    }
-}
 pub mod fee_module {
     // @@protoc_insertion_point(attribute:fee_module.v1)
     pub mod v1 {
         include!("fee_module.v1.rs");
         // @@protoc_insertion_point(fee_module.v1)
-    }
-}
-pub mod fpmm {
-    // @@protoc_insertion_point(attribute:fpmm.v1)
-    pub mod v1 {
-        include!("fpmm.v1.rs");
-        // @@protoc_insertion_point(fpmm.v1)
     }
 }
 pub mod negrisk_adapter {

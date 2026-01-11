@@ -9,7 +9,6 @@ members = [
     "conditional-tokens",
     "safe-proxy-factory",
     "fee-module",
-    "fpmm",
 ]
 resolver = "2"
 
