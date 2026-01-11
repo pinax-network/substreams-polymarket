@@ -42,6 +42,9 @@ pub struct Log {
     pub topics: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     #[prost(bytes="vec", tag="4")]
     pub data: ::prost::alloc::vec::Vec<u8>,
+    /// Tag allocation:
+    /// - 10-13: FPMM events (FPMMFundingAdded, FPMMFundingRemoved, FPMMBuy, FPMMSell)
+    /// - 14-16: Factory events (ProxyCreation, ProxyCreationL2, ChainSpecificProxyCreationL2)
     #[prost(oneof="log::Log", tags="10, 11, 12, 13, 14, 15, 16")]
     pub log: ::core::option::Option<log::Log>,
 }

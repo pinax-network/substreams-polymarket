@@ -86,7 +86,9 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
                 total_proxy_creation += 1;
                 let event = pb::log::Log::ProxyCreation(pb::ProxyCreation {
                     proxy: event.proxy.to_vec(),
-                    singleton: event.owner.to_vec(), // owner in Polymarket factory = singleton in proto
+                    // Polymarket's SafeProxyFactory emits 'owner' field which semantically represents
+                    // the singleton (master copy) address, matching Safe's standard 'singleton' field
+                    singleton: event.owner.to_vec(),
                 });
                 transaction.logs.push(pb::Log::create_log(log, event));
                 continue;
