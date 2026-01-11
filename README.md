@@ -11,7 +11,7 @@
 
 ## Data Features
 
-- [ ] Orders
+- [x] Orders (OrderBook)
 - [ ] Positions
 - [ ] Activity
 - [x] Open Interest
@@ -181,6 +181,27 @@ GROUP BY timestamp
 ORDER BY timestamp;
 ```
 
+### OrderBook
+
+Aggregated OrderBook metrics calculated from `ctfexchange_orders_matched` events. Reference: [Polymarket OrderBook Subgraph](https://github.com/Polymarket/polymarket-subgraph/tree/main/orderbook-subgraph)
+
+| Table/View | Description |
+| ----- | ----------- |
+| state_orderbook | OrderBook aggregated by asset_id and time interval (1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w) |
+| view_orders_matched_global | Global OrdersMatched aggregated across all order books |
+
+**Key Fields:**
+- `asset_id`: Token ID (the asset being traded, organized as the smallest aggregating market)
+- `trades_quantity`: Number of trades of any kind against this order book
+- `buys_quantity`: Number of purchases of shares from this order book
+- `sells_quantity`: Number of sales of shares to this order book
+- `collateral_volume`: Market volume in USDC base units
+- `collateral_buy_volume`: Volume of share purchases in USDC base units
+- `collateral_sell_volume`: Volume of share sales in USDC base units
+
+**Trade Classification:**
+- **BUY**: Taker pays USDC (taker_asset_id = 0) to receive shares
+- **SELL**: Taker receives USDC (maker_asset_id = 0) by selling shares
 ### User Position / PNL
 
 User position and PNL tracking from exchange trades and conditional token operations.
@@ -211,6 +232,41 @@ Reference: [Polymarket PNL Subgraph](https://github.com/Polymarket/polymarket-su
 **Query Examples:**
 
 ```sql
+-- Get OrderBook metrics for a specific asset at 1-hour intervals
+SELECT
+    timestamp,
+    trades_quantity,
+    buys_quantity,
+    sells_quantity,
+    collateral_volume,
+    toFloat64(collateral_volume) / 1000000.0 AS scaled_collateral_volume
+FROM state_orderbook
+WHERE interval_min = 60
+  AND asset_id = '12345...'
+ORDER BY timestamp;
+
+-- Get Global OrdersMatched metrics at daily intervals
+SELECT
+    timestamp,
+    trades_quantity,
+    buys_quantity,
+    sells_quantity,
+    scaled_collateral_volume,
+    scaled_collateral_buy_volume,
+    scaled_collateral_sell_volume
+FROM view_orders_matched_global
+WHERE interval_min = 1440
+ORDER BY timestamp;
+
+-- Get all-time global statistics
+SELECT
+    sum(trades_quantity) AS total_trades,
+    sum(buys_quantity) AS total_buys,
+    sum(sells_quantity) AS total_sells,
+    sum(collateral_volume) AS total_collateral_volume,
+    toFloat64(sum(collateral_volume)) / 1000000.0 AS total_scaled_collateral_volume
+FROM state_orderbook
+WHERE interval_min = 1;
 -- Get user's trading activity for a specific token at 1-hour intervals
 SELECT
     timestamp,
