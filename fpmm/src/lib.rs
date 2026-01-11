@@ -1,7 +1,8 @@
 use common::{CreateLog, CreateTransaction};
 use proto::pb::fpmm::v1 as pb;
 use substreams::Hex;
-use substreams_abis::evm::polymarket::fixedproductmarketmaker::events as events;
+use substreams_abis::evm::polymarket::fixedproductmarketmaker::events as fpmm_events;
+use substreams_abis::evm::polymarket::safeproxyfactory::events as factory_events;
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 
@@ -13,6 +14,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     let mut total_fpmm_funding_removed = 0;
     let mut total_fpmm_buy = 0;
     let mut total_fpmm_sell = 0;
+    let mut total_proxy_creation = 0;
 
     for trx in block.transactions() {
         let mut transaction = pb::Transaction::create_transaction(trx);
@@ -25,7 +27,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // FPMMFundingAdded event
-            if let Some(event) = events::FpmmFundingAdded::match_and_decode(log) {
+            if let Some(event) = fpmm_events::FpmmFundingAdded::match_and_decode(log) {
                 total_fpmm_funding_added += 1;
                 let event = pb::log::Log::FpmmFundingAdded(pb::FpmmFundingAdded {
                     funder: event.funder.to_vec(),
@@ -37,7 +39,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // FPMMFundingRemoved event
-            if let Some(event) = events::FpmmFundingRemoved::match_and_decode(log) {
+            if let Some(event) = fpmm_events::FpmmFundingRemoved::match_and_decode(log) {
                 total_fpmm_funding_removed += 1;
                 let event = pb::log::Log::FpmmFundingRemoved(pb::FpmmFundingRemoved {
                     funder: event.funder.to_vec(),
@@ -52,7 +54,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // FPMMBuy event
-            if let Some(event) = events::FpmmBuy::match_and_decode(log) {
+            if let Some(event) = fpmm_events::FpmmBuy::match_and_decode(log) {
                 total_fpmm_buy += 1;
                 let event = pb::log::Log::FpmmBuy(pb::FpmmBuy {
                     buyer: event.buyer.to_vec(),
@@ -66,7 +68,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // FPMMSell event
-            if let Some(event) = events::FpmmSell::match_and_decode(log) {
+            if let Some(event) = fpmm_events::FpmmSell::match_and_decode(log) {
                 total_fpmm_sell += 1;
                 let event = pb::log::Log::FpmmSell(pb::FpmmSell {
                     seller: event.seller.to_vec(),
@@ -74,6 +76,17 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
                     fee_amount: event.fee_amount.to_string(),
                     outcome_index: event.outcome_index.to_string(),
                     outcome_tokens_sold: event.outcome_tokens_sold.to_string(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+                continue;
+            }
+
+            // ProxyCreation event (Factory)
+            if let Some(event) = factory_events::ProxyCreation::match_and_decode(log) {
+                total_proxy_creation += 1;
+                let event = pb::log::Log::ProxyCreation(pb::ProxyCreation {
+                    proxy: event.proxy.to_vec(),
+                    singleton: event.owner.to_vec(), // owner in Polymarket factory = singleton in proto
                 });
                 transaction.logs.push(pb::Log::create_log(log, event));
                 continue;
@@ -97,6 +110,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     );
     substreams::log::info!("Total FPMMBuy events: {}", total_fpmm_buy);
     substreams::log::info!("Total FPMMSell events: {}", total_fpmm_sell);
+    substreams::log::info!("Total ProxyCreation events: {}", total_proxy_creation);
 
     Ok(events_output)
 }

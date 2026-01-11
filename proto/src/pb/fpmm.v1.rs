@@ -42,7 +42,7 @@ pub struct Log {
     pub topics: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     #[prost(bytes="vec", tag="4")]
     pub data: ::prost::alloc::vec::Vec<u8>,
-    #[prost(oneof="log::Log", tags="10, 11, 12, 13")]
+    #[prost(oneof="log::Log", tags="10, 11, 12, 13, 14, 15, 16")]
     pub log: ::core::option::Option<log::Log>,
 }
 /// Nested message and enum types in `Log`.
@@ -59,6 +59,13 @@ pub mod log {
         FpmmBuy(super::FpmmBuy),
         #[prost(message, tag="13")]
         FpmmSell(super::FpmmSell),
+        /// Factory events
+        #[prost(message, tag="14")]
+        ProxyCreation(super::ProxyCreation),
+        #[prost(message, tag="15")]
+        ProxyCreationL2(super::ProxyCreationL2),
+        #[prost(message, tag="16")]
+        ChainSpecificProxyCreationL2(super::ChainSpecificProxyCreationL2),
     }
 }
 /// FPMMFundingAdded event
@@ -131,5 +138,52 @@ pub struct FpmmSell {
     /// uint256
     #[prost(string, tag="5")]
     pub outcome_tokens_sold: ::prost::alloc::string::String,
+}
+/// Factory events (from SafeProxyFactory)
+/// <https://github.com/safe-global/safe-contracts/blob/main/contracts/proxies/SafeProxyFactory.sol>
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProxyCreation {
+    /// address
+    #[prost(bytes="vec", tag="10")]
+    pub proxy: ::prost::alloc::vec::Vec<u8>,
+    /// address
+    #[prost(bytes="vec", tag="11")]
+    pub singleton: ::prost::alloc::vec::Vec<u8>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProxyCreationL2 {
+    /// address
+    #[prost(bytes="vec", tag="10")]
+    pub proxy: ::prost::alloc::vec::Vec<u8>,
+    /// address
+    #[prost(bytes="vec", tag="11")]
+    pub singleton: ::prost::alloc::vec::Vec<u8>,
+    /// bytes
+    #[prost(bytes="vec", tag="12")]
+    pub initializer: ::prost::alloc::vec::Vec<u8>,
+    /// uint256
+    #[prost(string, tag="13")]
+    pub salt_nonce: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ChainSpecificProxyCreationL2 {
+    /// address
+    #[prost(bytes="vec", tag="10")]
+    pub proxy: ::prost::alloc::vec::Vec<u8>,
+    /// address
+    #[prost(bytes="vec", tag="11")]
+    pub singleton: ::prost::alloc::vec::Vec<u8>,
+    /// bytes
+    #[prost(bytes="vec", tag="12")]
+    pub initializer: ::prost::alloc::vec::Vec<u8>,
+    /// uint256
+    #[prost(string, tag="13")]
+    pub salt_nonce: ::prost::alloc::string::String,
+    /// uint256
+    #[prost(string, tag="14")]
+    pub chain_id: ::prost::alloc::string::String,
 }
 // @@protoc_insertion_point(module)

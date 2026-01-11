@@ -11,6 +11,7 @@ protobuf:
     - v1/erc20-transfers.proto
     - v1/erc1155.proto
     - v1/fee-module.proto
+    - v1/fpmm.proto
     - v1/negrisk-adapter.proto
     - v1/safe-proxy-factory.proto
     - v1/uma-ctf-adapter.proto

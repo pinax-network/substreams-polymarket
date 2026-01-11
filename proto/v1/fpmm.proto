@@ -28,6 +28,10 @@ message Log {
     FPMMFundingRemoved fpmm_funding_removed = 11;
     FPMMBuy fpmm_buy = 12;
     FPMMSell fpmm_sell = 13;
+    // Factory events
+    ProxyCreation proxy_creation = 14;
+    ProxyCreationL2 proxy_creation_l2 = 15;
+    ChainSpecificProxyCreationL2 chain_specific_proxy_creation_l2 = 16;
   }
 }
 
@@ -62,4 +66,27 @@ message FPMMSell {
   string fee_amount = 3; // uint256
   string outcome_index = 4; // uint256 (indexed)
   string outcome_tokens_sold = 5; // uint256
+}
+
+// Factory events (from SafeProxyFactory)
+// https://github.com/safe-global/safe-contracts/blob/main/contracts/proxies/SafeProxyFactory.sol
+
+message ProxyCreation {
+  bytes proxy = 10; // address
+  bytes singleton = 11; // address
+}
+
+message ProxyCreationL2 {
+  bytes proxy = 10; // address
+  bytes singleton = 11; // address
+  bytes initializer = 12; // bytes
+  string salt_nonce = 13; // uint256
+}
+
+message ChainSpecificProxyCreationL2 {
+  bytes proxy = 10; // address
+  bytes singleton = 11; // address
+  bytes initializer = 12; // bytes
+  string salt_nonce = 13; // uint256
+  string chain_id = 14; // uint256
 }
