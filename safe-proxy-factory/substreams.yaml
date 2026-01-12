@@ -1,7 +1,7 @@
 specVersion: v0.1.0
 package:
   name: safe_proxy_factory
-  version: v0.4.0
+  version: v0.1.0
   url: https://github.com/pinax-network/substreams-polymarket
   description: SafeProxyFactory events substreams package
   image: ../image.png

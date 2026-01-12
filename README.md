@@ -1,20 +1,13 @@
 # Substreams Polymarket
 
-## Packages
-
-- [x] Polymarket
-  - [x] CTF Exchange (`0x4bfb41d5b3570defd03c39a9a4d8de6bd8b8982e`)
-  - [x] Neg Risk CTF Exchange (`0xC5d563A36AE78145C45a50134d48A1215220f80a`)
-- [x] ERC1155
-  - [x] Conditional Tokens (`0x4D97DCd97eC945f40cF65F87097ACe5EA0476045`)
-- [x] NegRiskAdapter (`0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296`)
-
-## Data Features
+## Clickhouse Features
 
 - [x] Orders (OrderBook)
 - [x] Activity
 - [x] Open Interest
 - [x] PNL
+- [x] Fees
+- [x] Proxy Wallets
 
 | Smart contract name                                 | EVM address                                |
 | --------------------------------------------------- | ------------------------------------------ |
@@ -70,17 +63,6 @@ Events from the Conditional Tokens (CTF) contract for condition preparation and 
 | PositionSplit | Emitted when a position is successfully split |
 | PositionsMerge | Emitted when positions are successfully merged |
 | PayoutRedemption | Emitted when payout is redeemed |
-
-### ERC1155
-
-Events from the ERC1155 token standard for token transfers and approvals.
-
-| Event | Description |
-| ----- | ----------- |
-| TransferSingle | Emitted when a single token is transferred |
-| TransferBatch | Emitted when multiple tokens are transferred in a batch |
-| ApprovalForAll | Emitted when an operator is approved or revoked for all tokens |
-| URI | Emitted when a token URI is updated |
 
 ### NegRiskAdapter
 
