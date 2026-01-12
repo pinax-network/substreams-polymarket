@@ -1,6 +1,6 @@
 specVersion: v0.1.0
 package:
-  name: clickhouse
+  name: clickhouse_polymarket
   version: v0.1.0
   url: https://github.com/pinax-network/substreams-polymarket
   description: ClickHouse sink for Polymarket on Polygon
