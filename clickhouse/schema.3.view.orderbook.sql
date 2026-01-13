@@ -67,11 +67,9 @@ SELECT
     toFloat64(sum(state_orderbook.collateral_volume)) / 1000000.0 AS scaled_collateral_volume,
     toFloat64(sum(state_orderbook.collateral_buy_volume)) / 1000000.0 AS scaled_collateral_buy_volume,
     toFloat64(sum(state_orderbook.collateral_sell_volume)) / 1000000.0 AS scaled_collateral_sell_volume,
-    -- Global OHLC prices (in USD) --
-    argMinMerge(open) AS open,
-    quantileDeterministicMerge(0.95)(quantile) AS high,
-    quantileDeterministicMerge(0.05)(quantile) AS low,
-    argMaxMerge(close) AS close
+    -- Unique participants (merge the aggregate states) --
+    uniqMerge(uniq_makers) AS unique_makers,
+    uniqMerge(uniq_takers) AS unique_takers
 FROM state_orderbook
 GROUP BY
     interval_min,
