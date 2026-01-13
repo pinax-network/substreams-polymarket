@@ -35,6 +35,11 @@ CREATE TABLE IF NOT EXISTS state_orderbook (
     uniq_makers             AggregateFunction(uniq, String) COMMENT 'Unique maker addresses in the window',
     uniq_takers             AggregateFunction(uniq, String) COMMENT 'Unique taker addresses in the window',
 
+    -- Aggregate OHLC prices (in USD) --
+    open                    AggregateFunction(argMin, Float64, UInt64) COMMENT 'opening price in USD in the window',
+    quantile                AggregateFunction(quantileDeterministic, Float64, UInt64) COMMENT 'quantile price in USD in the window',
+    close                   AggregateFunction(argMax, Float64, UInt64) COMMENT 'closing price in USD in the window',
+
     -- indexes --
     INDEX idx_timestamp             (timestamp)             TYPE minmax         GRANULARITY 1,
     INDEX idx_asset_id              (asset_id)              TYPE bloom_filter   GRANULARITY 1,
@@ -95,7 +100,12 @@ SELECT
 
     -- Unique participants --
     uniqState(maker) AS uniq_makers,
-    uniqState(taker) AS uniq_takers
+    uniqState(taker) AS uniq_takers,
+
+    -- Aggregate OHLC prices (in USD) --
+    argMinState(price, toUInt64(block_num)) AS open,
+    quantileDeterministicState(price, toUInt64(block_num)) AS quantile,
+    argMaxState(price, toUInt64(block_num)) AS close
 
 -- Each OrdersMatched event represents a trade --
 -- We determine if it's a buy or sell based on which asset is USDC (token ID 0) --
@@ -130,6 +140,15 @@ FROM (
         toInt256(
             if(maker_asset_id = 0, maker_amount_filled, 0)
         ) AS sell_collateral,
+        -- Price in USD per share
+        -- BUY: taker pays USDC (taker_amount_filled) to receive shares (maker_amount_filled)
+        -- SELL: taker sells shares (taker_amount_filled) to receive USDC (maker_amount_filled)
+        toFloat64(
+            if(taker_asset_id = 0, taker_amount_filled, maker_amount_filled)
+        ) /
+        toFloat64(
+            if(taker_asset_id = 0, maker_amount_filled, taker_amount_filled)
+        ) AS price,
         -- Participants
         taker_order_maker AS maker,
         tx_from AS taker
