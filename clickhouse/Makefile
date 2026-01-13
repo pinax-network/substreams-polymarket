@@ -1,6 +1,6 @@
 ENDPOINT ?= polygon.substreams.pinax.network:443
-START_BLOCK ?= 0
-STOP_BLOCK ?= 0
+START_BLOCK ?= 81389202
+STOP_BLOCK ?= +1000
 PARALLEL_JOBS ?= 500
 
 .PHONY: build
