@@ -80,10 +80,10 @@ SELECT
     toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
 
     -- timestamp & block number --
-    min(timestamp) AS min_timestamp,
-    max(timestamp) AS max_timestamp,
-    min(block_num) AS min_block_num,
-    max(block_num) AS max_block_num,
+    min(trades.timestamp) AS min_timestamp,
+    max(trades.timestamp) AS max_timestamp,
+    min(trades.block_num) AS min_block_num,
+    max(trades.block_num) AS max_block_num,
 
     -- OrderBook identity (asset_id) --
     asset_id,
