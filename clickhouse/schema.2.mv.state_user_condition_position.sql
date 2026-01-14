@@ -46,8 +46,9 @@ ORDER BY (
 )
 COMMENT 'User Condition Positions from splits/merges/redemptions, aggregated by interval.';
 
--- Materialized View for User Condition Positions from Splits, Merges, Redemptions --
-CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_condition_position
+-- Materialized View for User Condition Positions from ConditionalTokens Position Split --
+-- Splits increase user position --
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_condition_position_ct_split
 TO state_user_condition_position
 AS
 WITH
@@ -66,162 +67,282 @@ SELECT
     max(block_num) AS max_block_num,
 
     -- User identity --
-    user,
+    stakeholder AS user,
     condition_id,
 
     -- Position changes --
-    sum(split_amount) AS split_amount,
-    sum(merge_amount) AS merge_amount,
-    sum(redeem_payout) AS redeem_payout,
-    sum(convert_amount) AS convert_amount,
-    sum(net_amount) AS net_amount,
+    sum(toInt256(amount)) AS split_amount,
+    toInt256(0) AS merge_amount,
+    toInt256(0) AS redeem_payout,
+    toInt256(0) AS convert_amount,
+    sum(toInt256(amount)) AS net_amount,
 
     -- Transaction counts --
-    sum(is_split) AS split_count,
-    sum(is_merge) AS merge_count,
-    sum(is_redeem) AS redeem_count,
-    sum(is_convert) AS convert_count,
+    count() AS split_count,
+    toUInt64(0) AS merge_count,
+    toUInt64(0) AS redeem_count,
+    toUInt64(0) AS convert_count,
     count() AS transactions
--- ConditionalTokens Position Split: user receives tokens at 50 cents each --
--- Splits increase user position --
-FROM (
-    SELECT
-        timestamp,
-        block_num,
-        stakeholder AS user,
-        condition_id,
-        toInt256(amount) AS split_amount,
-        toInt256(0) AS merge_amount,
-        toInt256(0) AS redeem_payout,
-        toInt256(0) AS convert_amount,
-        toInt256(amount) AS net_amount,
-        toUInt64(1) AS is_split,
-        toUInt64(0) AS is_merge,
-        toUInt64(0) AS is_redeem,
-        toUInt64(0) AS is_convert
-    FROM conditionaltokens_position_split
+FROM conditionaltokens_position_split
+GROUP BY
+    interval_min,
+    user, condition_id,
+    timestamp;
 
-    UNION ALL
+-- Materialized View for User Condition Positions from ConditionalTokens Positions Merge --
+-- Merges decrease user position --
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_condition_position_ct_merge
+TO state_user_condition_position
+AS
+WITH
+    -- predefined intervals --
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    -- floor to the interval in seconds
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
 
-    -- ConditionalTokens Positions Merge: user sells tokens at 50 cents each
-    -- Merges decrease user position
-    SELECT
-        timestamp,
-        block_num,
-        stakeholder AS user,
-        condition_id,
-        toInt256(0) AS split_amount,
-        toInt256(amount) AS merge_amount,
-        toInt256(0) AS redeem_payout,
-        toInt256(0) AS convert_amount,
-        -toInt256(amount) AS net_amount,
-        toUInt64(0) AS is_split,
-        toUInt64(1) AS is_merge,
-        toUInt64(0) AS is_redeem,
-        toUInt64(0) AS is_convert
-    FROM conditionaltokens_positions_merge
+    -- timestamp & block number --
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
 
-    UNION ALL
+    -- User identity --
+    stakeholder AS user,
+    condition_id,
 
-    -- ConditionalTokens Payout Redemption: user redeems tokens at payout price
-    -- Redemptions decrease user position and realize gains/losses
-    SELECT
-        timestamp,
-        block_num,
-        redeemer AS user,
-        condition_id,
-        toInt256(0) AS split_amount,
-        toInt256(0) AS merge_amount,
-        toInt256(payout) AS redeem_payout,
-        toInt256(0) AS convert_amount,
-        toInt256(0) AS net_amount,  -- payout is in USDC, not tokens
-        toUInt64(0) AS is_split,
-        toUInt64(0) AS is_merge,
-        toUInt64(1) AS is_redeem,
-        toUInt64(0) AS is_convert
-    FROM conditionaltokens_payout_redemption
+    -- Position changes --
+    toInt256(0) AS split_amount,
+    sum(toInt256(amount)) AS merge_amount,
+    toInt256(0) AS redeem_payout,
+    toInt256(0) AS convert_amount,
+    -sum(toInt256(amount)) AS net_amount,
 
-    UNION ALL
+    -- Transaction counts --
+    toUInt64(0) AS split_count,
+    count() AS merge_count,
+    toUInt64(0) AS redeem_count,
+    toUInt64(0) AS convert_count,
+    count() AS transactions
+FROM conditionaltokens_positions_merge
+GROUP BY
+    interval_min,
+    user, condition_id,
+    timestamp;
 
-    -- NegRiskAdapter Position Split
-    SELECT
-        timestamp,
-        block_num,
-        stakeholder AS user,
-        condition_id,
-        toInt256(amount) AS split_amount,
-        toInt256(0) AS merge_amount,
-        toInt256(0) AS redeem_payout,
-        toInt256(0) AS convert_amount,
-        toInt256(amount) AS net_amount,
-        toUInt64(1) AS is_split,
-        toUInt64(0) AS is_merge,
-        toUInt64(0) AS is_redeem,
-        toUInt64(0) AS is_convert
-    FROM negriskadapter_position_split
+-- Materialized View for User Condition Positions from ConditionalTokens Payout Redemption --
+-- Redemptions decrease user position and realize gains/losses --
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_condition_position_ct_redeem
+TO state_user_condition_position
+AS
+WITH
+    -- predefined intervals --
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    -- floor to the interval in seconds
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
 
-    UNION ALL
+    -- timestamp & block number --
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
 
-    -- NegRiskAdapter Positions Merge
-    SELECT
-        timestamp,
-        block_num,
-        stakeholder AS user,
-        condition_id,
-        toInt256(0) AS split_amount,
-        toInt256(amount) AS merge_amount,
-        toInt256(0) AS redeem_payout,
-        toInt256(0) AS convert_amount,
-        -toInt256(amount) AS net_amount,
-        toUInt64(0) AS is_split,
-        toUInt64(1) AS is_merge,
-        toUInt64(0) AS is_redeem,
-        toUInt64(0) AS is_convert
-    FROM negriskadapter_positions_merge
+    -- User identity --
+    redeemer AS user,
+    condition_id,
 
-    UNION ALL
+    -- Position changes --
+    toInt256(0) AS split_amount,
+    toInt256(0) AS merge_amount,
+    sum(toInt256(payout)) AS redeem_payout,
+    toInt256(0) AS convert_amount,
+    toInt256(0) AS net_amount,  -- payout is in USDC, not tokens
 
-    -- NegRiskAdapter Positions Converted
-    -- Note: Conversions involve complex token swaps between YES/NO positions
-    -- market_id is used instead of condition_id for conversions since this event
-    -- operates at the market level (multi-question markets). The market_id identifies
-    -- the neg-risk market containing multiple conditions/questions.
-    -- WARNING: Do not join with other sources on condition_id when convert_count > 0
-    SELECT
-        timestamp,
-        block_num,
-        stakeholder AS user,
-        market_id AS condition_id,  -- market_id identifies the neg-risk market (different from condition_id)
-        toInt256(0) AS split_amount,
-        toInt256(0) AS merge_amount,
-        toInt256(0) AS redeem_payout,
-        toInt256(amount) AS convert_amount,
-        toInt256(0) AS net_amount,  -- net is 0 as it's a conversion between positions
-        toUInt64(0) AS is_split,
-        toUInt64(0) AS is_merge,
-        toUInt64(0) AS is_redeem,
-        toUInt64(1) AS is_convert
-    FROM negriskadapter_positions_converted
+    -- Transaction counts --
+    toUInt64(0) AS split_count,
+    toUInt64(0) AS merge_count,
+    count() AS redeem_count,
+    toUInt64(0) AS convert_count,
+    count() AS transactions
+FROM conditionaltokens_payout_redemption
+GROUP BY
+    interval_min,
+    user, condition_id,
+    timestamp;
 
-    UNION ALL
+-- Materialized View for User Condition Positions from NegRiskAdapter Position Split --
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_condition_position_nr_split
+TO state_user_condition_position
+AS
+WITH
+    -- predefined intervals --
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    -- floor to the interval in seconds
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
 
-    -- NegRiskAdapter Payout Redemption
-    SELECT
-        timestamp,
-        block_num,
-        redeemer AS user,
-        condition_id,
-        toInt256(0) AS split_amount,
-        toInt256(0) AS merge_amount,
-        toInt256(payout) AS redeem_payout,
-        toInt256(0) AS convert_amount,
-        toInt256(0) AS net_amount,
-        toUInt64(0) AS is_split,
-        toUInt64(0) AS is_merge,
-        toUInt64(1) AS is_redeem,
-        toUInt64(0) AS is_convert
-    FROM negriskadapter_payout_redemption
-) AS combined
+    -- timestamp & block number --
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+
+    -- User identity --
+    stakeholder AS user,
+    condition_id,
+
+    -- Position changes --
+    sum(toInt256(amount)) AS split_amount,
+    toInt256(0) AS merge_amount,
+    toInt256(0) AS redeem_payout,
+    toInt256(0) AS convert_amount,
+    sum(toInt256(amount)) AS net_amount,
+
+    -- Transaction counts --
+    count() AS split_count,
+    toUInt64(0) AS merge_count,
+    toUInt64(0) AS redeem_count,
+    toUInt64(0) AS convert_count,
+    count() AS transactions
+FROM negriskadapter_position_split
+GROUP BY
+    interval_min,
+    user, condition_id,
+    timestamp;
+
+-- Materialized View for User Condition Positions from NegRiskAdapter Positions Merge --
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_condition_position_nr_merge
+TO state_user_condition_position
+AS
+WITH
+    -- predefined intervals --
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    -- floor to the interval in seconds
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
+
+    -- timestamp & block number --
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+
+    -- User identity --
+    stakeholder AS user,
+    condition_id,
+
+    -- Position changes --
+    toInt256(0) AS split_amount,
+    sum(toInt256(amount)) AS merge_amount,
+    toInt256(0) AS redeem_payout,
+    toInt256(0) AS convert_amount,
+    -sum(toInt256(amount)) AS net_amount,
+
+    -- Transaction counts --
+    toUInt64(0) AS split_count,
+    count() AS merge_count,
+    toUInt64(0) AS redeem_count,
+    toUInt64(0) AS convert_count,
+    count() AS transactions
+FROM negriskadapter_positions_merge
+GROUP BY
+    interval_min,
+    user, condition_id,
+    timestamp;
+
+-- Materialized View for User Condition Positions from NegRiskAdapter Positions Converted --
+-- Note: Conversions involve complex token swaps between YES/NO positions
+-- market_id is used instead of condition_id for conversions since this event
+-- operates at the market level (multi-question markets). The market_id identifies
+-- the neg-risk market containing multiple conditions/questions.
+-- WARNING: Do not join with other sources on condition_id when convert_count > 0
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_condition_position_nr_convert
+TO state_user_condition_position
+AS
+WITH
+    -- predefined intervals --
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    -- floor to the interval in seconds
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
+
+    -- timestamp & block number --
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+
+    -- User identity --
+    stakeholder AS user,
+    market_id AS condition_id,  -- market_id identifies the neg-risk market (different from condition_id)
+
+    -- Position changes --
+    toInt256(0) AS split_amount,
+    toInt256(0) AS merge_amount,
+    toInt256(0) AS redeem_payout,
+    sum(toInt256(amount)) AS convert_amount,
+    toInt256(0) AS net_amount,  -- net is 0 as it's a conversion between positions
+
+    -- Transaction counts --
+    toUInt64(0) AS split_count,
+    toUInt64(0) AS merge_count,
+    toUInt64(0) AS redeem_count,
+    count() AS convert_count,
+    count() AS transactions
+FROM negriskadapter_positions_converted
+GROUP BY
+    interval_min,
+    user, condition_id,
+    timestamp;
+
+-- Materialized View for User Condition Positions from NegRiskAdapter Payout Redemption --
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_condition_position_nr_redeem
+TO state_user_condition_position
+AS
+WITH
+    -- predefined intervals --
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    -- floor to the interval in seconds
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
+
+    -- timestamp & block number --
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+
+    -- User identity --
+    redeemer AS user,
+    condition_id,
+
+    -- Position changes --
+    toInt256(0) AS split_amount,
+    toInt256(0) AS merge_amount,
+    sum(toInt256(payout)) AS redeem_payout,
+    toInt256(0) AS convert_amount,
+    toInt256(0) AS net_amount,  -- payout is in USDC, not tokens
+
+    -- Transaction counts --
+    toUInt64(0) AS split_count,
+    toUInt64(0) AS merge_count,
+    count() AS redeem_count,
+    toUInt64(0) AS convert_count,
+    count() AS transactions
+FROM negriskadapter_payout_redemption
 GROUP BY
     interval_min,
     user, condition_id,

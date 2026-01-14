@@ -59,8 +59,10 @@ ORDER BY (
 )
 COMMENT 'User Token Positions from exchange trades, aggregated by interval. Query cumulative values by summing over time.';
 
--- Materialized View for User Positions from OrderFilled events --
-CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_position
+-- Materialized View for User Positions from OrderFilled BUY events --
+-- OrderFilled BUY: maker buys tokens (makerAssetId = 0 means maker pays USDC for tokens) --
+-- When makerAssetId = 0: maker is buying, taker_asset_id is the token, taker_amount_filled is token amount --
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_position_buy
 TO state_user_position
 AS
 WITH
@@ -79,61 +81,71 @@ SELECT
     max(block_num) AS max_block_num,
 
     -- User identity --
-    user,
-    token_id,
+    maker AS user,
+    taker_asset_id AS token_id,
 
     -- Position changes --
-    sum(buy_amount) AS buy_amount,
-    sum(sell_amount) AS sell_amount,
-    sum(net_amount) AS net_amount,
+    sum(toInt256(taker_amount_filled)) AS buy_amount,
+    toInt256(0) AS sell_amount,
+    sum(toInt256(taker_amount_filled)) AS net_amount,
 
     -- Cost basis tracking --
-    sum(buy_cost) AS buy_cost,
-    sum(sell_revenue) AS sell_revenue,
+    -- price = makerAmountFilled / takerAmountFilled (USDC per token)
+    -- buy_cost = makerAmountFilled (total USDC spent)
+    sum(toInt256(maker_amount_filled)) AS buy_cost,
+    toInt256(0) AS sell_revenue,
 
     -- Transaction counts --
-    sum(is_buy) AS buy_count,
-    sum(is_sell) AS sell_count,
+    count() AS buy_count,
+    toUInt64(0) AS sell_count,
     count() AS transactions
--- OrderFilled BUY: maker buys tokens (makerAssetId = 0 means maker pays USDC for tokens) --
--- When makerAssetId = 0: maker is buying, taker_asset_id is the token, taker_amount_filled is token amount --
-FROM (
-    SELECT
-        timestamp,
-        block_num,
-        maker AS user,
-        taker_asset_id AS token_id,
-        toInt256(taker_amount_filled) AS buy_amount,
-        toInt256(0) AS sell_amount,
-        toInt256(taker_amount_filled) AS net_amount,
-        -- price = makerAmountFilled / takerAmountFilled (USDC per token)
-        -- buy_cost = makerAmountFilled (total USDC spent)
-        toInt256(maker_amount_filled) AS buy_cost,
-        toInt256(0) AS sell_revenue,
-        toUInt64(1) AS is_buy,
-        toUInt64(0) AS is_sell
-    FROM ctfexchange_order_filled
-    WHERE maker_asset_id = 0
+FROM ctfexchange_order_filled
+WHERE maker_asset_id = 0
+GROUP BY
+    interval_min,
+    user, token_id,
+    timestamp;
 
-    UNION ALL
+-- Materialized View for User Positions from OrderFilled SELL events --
+-- OrderFilled SELL: maker sells tokens (makerAssetId != 0 means maker is selling tokens for USDC)
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_position_sell
+TO state_user_position
+AS
+WITH
+    -- predefined intervals --
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    -- floor to the interval in seconds
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
 
-    -- OrderFilled SELL: maker sells tokens (makerAssetId != 0 means maker is selling tokens for USDC)
-    SELECT
-        timestamp,
-        block_num,
-        maker AS user,
-        maker_asset_id AS token_id,
-        toInt256(0) AS buy_amount,
-        toInt256(maker_amount_filled) AS sell_amount,
-        -toInt256(maker_amount_filled) AS net_amount,
-        toInt256(0) AS buy_cost,
-        -- sell_revenue = takerAmountFilled (total USDC received)
-        toInt256(taker_amount_filled) AS sell_revenue,
-        toUInt64(0) AS is_buy,
-        toUInt64(1) AS is_sell
-    FROM ctfexchange_order_filled
-    WHERE maker_asset_id != 0
-) AS combined
+    -- timestamp & block number --
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+
+    -- User identity --
+    maker AS user,
+    maker_asset_id AS token_id,
+
+    -- Position changes --
+    toInt256(0) AS buy_amount,
+    sum(toInt256(maker_amount_filled)) AS sell_amount,
+    -sum(toInt256(maker_amount_filled)) AS net_amount,
+
+    -- Cost basis tracking --
+    toInt256(0) AS buy_cost,
+    -- sell_revenue = takerAmountFilled (total USDC received)
+    sum(toInt256(taker_amount_filled)) AS sell_revenue,
+
+    -- Transaction counts --
+    toUInt64(0) AS buy_count,
+    count() AS sell_count,
+    count() AS transactions
+FROM ctfexchange_order_filled
+WHERE maker_asset_id != 0
 GROUP BY
     interval_min,
     user, token_id,
