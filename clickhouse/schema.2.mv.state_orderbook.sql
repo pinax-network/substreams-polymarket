@@ -73,23 +73,49 @@ AS
 WITH
     -- predefined intervals --
     -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w --
-    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals,
+
+    -- The asset being traded is the non-USDC token --
+    -- If taker_asset_id is 0 (USDC), the traded asset is maker_asset_id (BUY) --
+    -- If maker_asset_id is 0 (USDC), the traded asset is taker_asset_id (SELL) --
+    toString(if(taker_asset_id = 0, maker_asset_id, taker_asset_id)) AS asset_id,
+
+    -- BUY: taker pays USDC (taker_asset_id = 0) to receive shares
+    if(taker_asset_id = 0, 1, 0) AS is_buy,
+    -- SELL: taker receives USDC (maker_asset_id = 0) by selling shares
+    if(maker_asset_id = 0, 1, 0) AS is_sell,
+
+    -- Collateral amount is the USDC amount in the trade
+    -- If taker pays USDC (buy), collateral = taker_amount_filled
+    -- If taker receives USDC (sell), collateral = maker_amount_filled
+    toInt256(if(taker_asset_id = 0, taker_amount_filled, maker_amount_filled)) AS collateral_amount,
+    -- Buy collateral
+    toInt256(if(taker_asset_id = 0, taker_amount_filled, 0)) AS buy_collateral,
+    -- Sell collateral
+    toInt256(if(maker_asset_id = 0, maker_amount_filled, 0)) AS sell_collateral,
+
+    -- Price in USD per share
+    -- BUY: taker pays USDC (taker_amount_filled) to receive shares (maker_amount_filled)
+    -- SELL: taker sells shares (taker_amount_filled) to receive USDC (maker_amount_filled)
+    toFloat64(if(taker_asset_id = 0, taker_amount_filled, maker_amount_filled)) /
+    toFloat64(if(taker_asset_id = 0, maker_amount_filled, taker_amount_filled)) AS price
+
 SELECT
     arrayJoin(intervals) AS interval_min,
     -- floor to the interval in seconds
     toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
 
     -- timestamp & block number --
-    min(trades.timestamp) AS min_timestamp,
-    max(trades.timestamp) AS max_timestamp,
-    min(trades.block_num) AS min_block_num,
-    max(trades.block_num) AS max_block_num,
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
 
     -- OrderBook identity (asset_id) --
     asset_id,
 
     -- Trading quantities --
-    sum(trades_count) AS trades_quantity,
+    count() AS trades_quantity,
     sum(is_buy) AS buys_quantity,
     sum(is_sell) AS sells_quantity,
 
@@ -99,63 +125,16 @@ SELECT
     sum(sell_collateral) AS collateral_sell_volume,
 
     -- Unique participants --
-    uniqState(maker) AS uniq_makers,
-    uniqState(taker) AS uniq_takers,
+    uniqState(taker_order_maker) AS uniq_makers,
+    uniqState(tx_from) AS uniq_takers,
 
     -- Aggregate OHLC prices (in USD) --
     argMinState(price, toUInt64(block_num)) AS open,
     quantileDeterministicState(price, toUInt64(block_num)) AS quantile,
     argMaxState(price, toUInt64(block_num)) AS close
-
--- Each OrdersMatched event represents a trade --
--- We determine if it's a buy or sell based on which asset is USDC (token ID 0) --
--- and we extract the non-USDC asset as the asset_id --
-FROM (
-    SELECT
-        timestamp,
-        block_num,
-        -- The asset being traded is the non-USDC token --
-        -- If taker_asset_id is 0 (USDC), the traded asset is maker_asset_id (BUY) --
-        -- If maker_asset_id is 0 (USDC), the traded asset is taker_asset_id (SELL) --
-        toString(
-            if(taker_asset_id = 0, maker_asset_id, taker_asset_id)
-        ) AS asset_id,
-        -- Trade classification --
-        toUInt64(1) AS trades_count,
-        -- BUY: taker pays USDC (taker_asset_id = 0) to receive shares
-        toUInt64(if(taker_asset_id = 0, 1, 0)) AS is_buy,
-        -- SELL: taker receives USDC (maker_asset_id = 0) by selling shares
-        toUInt64(if(maker_asset_id = 0, 1, 0)) AS is_sell,
-        -- Collateral amount is the USDC amount in the trade
-        -- If taker pays USDC (buy), collateral = taker_amount_filled
-        -- If taker receives USDC (sell), collateral = maker_amount_filled
-        toInt256(
-            if(taker_asset_id = 0, taker_amount_filled, maker_amount_filled)
-        ) AS collateral_amount,
-        -- Buy collateral
-        toInt256(
-            if(taker_asset_id = 0, taker_amount_filled, 0)
-        ) AS buy_collateral,
-        -- Sell collateral
-        toInt256(
-            if(maker_asset_id = 0, maker_amount_filled, 0)
-        ) AS sell_collateral,
-        -- Price in USD per share
-        -- BUY: taker pays USDC (taker_amount_filled) to receive shares (maker_amount_filled)
-        -- SELL: taker sells shares (taker_amount_filled) to receive USDC (maker_amount_filled)
-        toFloat64(
-            if(taker_asset_id = 0, taker_amount_filled, maker_amount_filled)
-        ) /
-        toFloat64(
-            if(taker_asset_id = 0, maker_amount_filled, taker_amount_filled)
-        ) AS price,
-        -- Participants
-        taker_order_maker AS maker,
-        tx_from AS taker
-    FROM ctfexchange_orders_matched
-    -- Filter out trades where neither asset is USDC (edge cases)
-    WHERE taker_asset_id = 0 OR maker_asset_id = 0
-) AS trades
+FROM ctfexchange_orders_matched
+-- Filter out trades where neither asset is USDC (edge cases) --
+WHERE taker_asset_id = 0 OR maker_asset_id = 0
 GROUP BY
     interval_min,
     asset_id,
