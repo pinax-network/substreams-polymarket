@@ -19,9 +19,3 @@ This crate extracts fee accounting and admin events from Polymarket fee module c
 - FeeModule legacy: `0x56c79347e95530c01a2fc76e732f9566da16e113`
 - NegRiskFeeModule v2: `0xb768891e3130f6df18214ac804d4db76c2c37730`
 - NegRiskFeeModule v1: `0x78769d50be1763ed1ca0d5e878d93f05aabff29e`
-
-## Build
-
-```bash
-make build
-```

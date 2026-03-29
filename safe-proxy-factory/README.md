@@ -13,9 +13,3 @@ This crate extracts Safe proxy creation events for Polymarket wallets on Polygon
 ## Contract
 
 - Safe Factory: `0xaacfeea03eb1561c4e67d661e40682bd20e3541b`
-
-## Build
-
-```bash
-make build
-```

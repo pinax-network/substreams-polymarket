@@ -17,9 +17,3 @@ This crate extracts Polymarket Conditional Tokens events from Polygon.
 ## Contract
 
 - Conditional Tokens: `0x4d97dcd97ec945f40cf65f87097ace5ea0476045`
-
-## Build
-
-```bash
-make build
-```

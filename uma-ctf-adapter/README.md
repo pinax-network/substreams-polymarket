@@ -24,9 +24,3 @@ This crate extracts UMA oracle lifecycle events used by Polymarket markets on Po
 
 - UmaCtfAdapter v3: `0x2f5e3684cb1f318ec51b00edba38d79ac2c0aa9d`
 - UmaCtfAdapter v2: `0x6a9d222616c90fca5754cd1333cfd9b7fb6a4f74`
-
-## Build
-
-```bash
-make build
-```
