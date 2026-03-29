@@ -3,7 +3,7 @@ package:
   name: ctf_exchange
   version: v0.1.0
   url: https://github.com/pinax-network/substreams-polymarket
-  description: Polymarket for EVM
+  description: Polymarket: CTF Exchange events on Polygon
   image: ../image.png
 
 binaries:

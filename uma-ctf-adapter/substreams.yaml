@@ -3,7 +3,7 @@ package:
   name: uma_ctf_adapter
   version: v0.1.0
   url: https://github.com/pinax-network/substreams-polymarket
-  description: UmaCtfAdapter events substreams package
+  description: Polymarket: UMA CTF Adapter events on Polygon
   image: ../image.png
 
 protobuf:

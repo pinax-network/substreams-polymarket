@@ -1,16 +1,18 @@
-# SafeProxyFactory Substreams
+# Polymarket: Safe Proxy Factory
 
-This substreams module extracts SafeProxyFactory events from the Polygon blockchain.
+This crate extracts Safe proxy creation events for Polymarket wallets on Polygon.
+
+## Module
+
+- `map_events`: emits `safe_proxy_factory.v1.Events`
 
 ## Events
 
-- `ProxyCreation`: Emitted when a new Safe proxy is created
-- `ProxyCreationL2`: Emitted when a new Safe proxy is created with L2 metadata
-- `ChainSpecificProxyCreationL2`: Emitted when a chain-specific Safe proxy is created
+- `ProxyCreation`
 
 ## Contract
 
-Safe Factory: `0xaacfeea03eb1561c4e67d661e40682bd20e3541b`
+- Safe Factory: `0xaacfeea03eb1561c4e67d661e40682bd20e3541b`
 
 ## Build
 
