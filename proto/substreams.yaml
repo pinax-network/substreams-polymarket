@@ -2,7 +2,7 @@ specVersion: v0.1.0
 package:
   name: proto
   version: v0.0.0
-  description: Polymarket: shared protobuf definitions for Substreams packages
+  description: Polymarket - shared protobuf definitions for Substreams packages
 
 protobuf:
   files:

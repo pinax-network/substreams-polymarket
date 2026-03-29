@@ -3,7 +3,7 @@ package:
   name: negrisk_adapter
   version: v0.1.0
   url: https://github.com/pinax-network/substreams-polymarket
-  description: Polymarket: Neg Risk Adapter events on Polygon
+  description: Polymarket - Neg Risk Adapter events on Polygon
   image: ../image.png
 
 protobuf:
