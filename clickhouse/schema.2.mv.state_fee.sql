@@ -61,7 +61,7 @@ SELECT
     countIf(fee > 0) AS fee_count,
     sum(collateral_amount) AS total_volume,
     count() AS trade_count,
-    uniqState(taker) AS uniq_fee_payers
+    uniqStateIf(taker, fee > 0) AS uniq_fee_payers
 FROM ctfexchange_order_filled
 WHERE taker_asset_id = 0 OR maker_asset_id = 0
 GROUP BY
