@@ -30,6 +30,9 @@ ALTER TABLE conditionaltokens_position_split
 	ADD COLUMN IF NOT EXISTS condition_id         String COMMENT 'Condition ID (bytes32 as hex with 0x prefix)',
 	ADD COLUMN IF NOT EXISTS partition            String COMMENT 'Comma-separated partition (uint256[])',
 	ADD COLUMN IF NOT EXISTS amount               UInt256 COMMENT 'Split amount';
+ALTER TABLE conditionaltokens_position_split
+	ADD INDEX IF NOT EXISTS idx_condition_id (condition_id) TYPE bloom_filter GRANULARITY 1,
+	ADD INDEX IF NOT EXISTS idx_stakeholder (stakeholder) TYPE bloom_filter GRANULARITY 1;
 
 -- ConditionalTokens PositionsMerge --
 CREATE TABLE IF NOT EXISTS conditionaltokens_positions_merge AS TEMPLATE_LOG
@@ -42,6 +45,9 @@ ALTER TABLE conditionaltokens_positions_merge
 	ADD COLUMN IF NOT EXISTS condition_id         String COMMENT 'Condition ID (bytes32 as hex with 0x prefix)',
 	ADD COLUMN IF NOT EXISTS partition            String COMMENT 'Comma-separated partition (uint256[])',
 	ADD COLUMN IF NOT EXISTS amount               UInt256 COMMENT 'Merge amount';
+ALTER TABLE conditionaltokens_positions_merge
+	ADD INDEX IF NOT EXISTS idx_condition_id (condition_id) TYPE bloom_filter GRANULARITY 1,
+	ADD INDEX IF NOT EXISTS idx_stakeholder (stakeholder) TYPE bloom_filter GRANULARITY 1;
 
 -- ConditionalTokens PayoutRedemption --
 CREATE TABLE IF NOT EXISTS conditionaltokens_payout_redemption AS TEMPLATE_LOG
@@ -54,3 +60,6 @@ ALTER TABLE conditionaltokens_payout_redemption
 	ADD COLUMN IF NOT EXISTS condition_id         String COMMENT 'Condition ID (bytes32 as hex with 0x prefix)',
 	ADD COLUMN IF NOT EXISTS index_sets           String COMMENT 'Comma-separated index sets (uint256[])',
 	ADD COLUMN IF NOT EXISTS payout               UInt256 COMMENT 'Payout amount';
+ALTER TABLE conditionaltokens_payout_redemption
+	ADD INDEX IF NOT EXISTS idx_condition_id (condition_id) TYPE bloom_filter GRANULARITY 1,
+	ADD INDEX IF NOT EXISTS idx_redeemer (redeemer) TYPE bloom_filter GRANULARITY 1;

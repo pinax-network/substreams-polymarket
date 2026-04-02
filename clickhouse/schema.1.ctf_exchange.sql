@@ -11,6 +11,11 @@ ALTER TABLE ctfexchange_order_filled
     ADD COLUMN IF NOT EXISTS maker_amount_filled  UInt256 COMMENT 'Maker amount filled',
     ADD COLUMN IF NOT EXISTS taker_amount_filled  UInt256 COMMENT 'Taker amount filled',
     ADD COLUMN IF NOT EXISTS fee                  UInt256 COMMENT 'Fee amount';
+ALTER TABLE ctfexchange_order_filled
+    ADD INDEX IF NOT EXISTS idx_taker_asset_id (taker_asset_id) TYPE bloom_filter GRANULARITY 1,
+    ADD INDEX IF NOT EXISTS idx_maker_asset_id (maker_asset_id) TYPE bloom_filter GRANULARITY 1,
+    ADD INDEX IF NOT EXISTS idx_taker (taker) TYPE bloom_filter GRANULARITY 1,
+    ADD INDEX IF NOT EXISTS idx_maker (maker) TYPE bloom_filter GRANULARITY 1;
 
 -- CTFExchange FeeCharged --
 CREATE TABLE IF NOT EXISTS ctfexchange_fee_charged AS TEMPLATE_LOG
