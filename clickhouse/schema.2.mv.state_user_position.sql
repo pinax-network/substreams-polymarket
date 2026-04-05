@@ -150,3 +150,95 @@ GROUP BY
     interval_min,
     user, token_id,
     timestamp;
+
+-- Materialized View for User Positions from OrderFilled taker BUY events --
+-- When makerAssetId != 0: maker is selling tokens, so taker is the buyer.
+-- Taker pays taker_amount_filled USDC to receive maker_amount_filled tokens (maker_asset_id).
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_position_taker_buy
+TO state_user_position
+AS
+WITH
+    -- predefined intervals --
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    -- floor to the interval in seconds
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
+
+    -- timestamp & block number --
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+
+    -- User identity --
+    taker AS user,
+    maker_asset_id AS token_id,
+
+    -- Position changes --
+    sum(toInt256(maker_amount_filled)) AS buy_amount,
+    toInt256(0) AS sell_amount,
+    sum(toInt256(maker_amount_filled)) AS net_amount,
+
+    -- Cost basis tracking --
+    -- buy_cost = taker_amount_filled (total USDC spent by taker)
+    sum(toInt256(taker_amount_filled)) AS buy_cost,
+    toInt256(0) AS sell_revenue,
+
+    -- Transaction counts --
+    count() AS buy_count,
+    toUInt64(0) AS sell_count,
+    count() AS transactions
+FROM ctfexchange_order_filled
+WHERE maker_asset_id != 0
+GROUP BY
+    interval_min,
+    user, token_id,
+    timestamp;
+
+-- Materialized View for User Positions from OrderFilled taker SELL events --
+-- When makerAssetId = 0: maker is the buyer (pays USDC), so taker is the seller.
+-- Taker sells taker_amount_filled tokens (taker_asset_id) and receives maker_amount_filled USDC.
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_user_position_taker_sell
+TO state_user_position
+AS
+WITH
+    -- predefined intervals --
+    -- in minutes: 1m, 5m, 10m, 30m, 1h, 4h, 1d, 1w
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    -- floor to the interval in seconds
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
+
+    -- timestamp & block number --
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+
+    -- User identity --
+    taker AS user,
+    taker_asset_id AS token_id,
+
+    -- Position changes --
+    toInt256(0) AS buy_amount,
+    sum(toInt256(taker_amount_filled)) AS sell_amount,
+    -sum(toInt256(taker_amount_filled)) AS net_amount,
+
+    -- Cost basis tracking --
+    toInt256(0) AS buy_cost,
+    -- sell_revenue = maker_amount_filled (total USDC received by taker)
+    sum(toInt256(maker_amount_filled)) AS sell_revenue,
+
+    -- Transaction counts --
+    toUInt64(0) AS buy_count,
+    count() AS sell_count,
+    count() AS transactions
+FROM ctfexchange_order_filled
+WHERE maker_asset_id = 0
+GROUP BY
+    interval_min,
+    user, token_id,
+    timestamp;
