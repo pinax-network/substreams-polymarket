@@ -107,3 +107,67 @@ GROUP BY
     interval_min,
     user, token_id,
     timestamp;
+
+-- Materialized View for Market Positions from OrderFilled taker BUY events --
+-- When makerAssetId != 0: maker is selling tokens, so taker is the buyer.
+-- Taker pays taker_amount_filled USDC to receive maker_amount_filled tokens (maker_asset_id).
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_market_position_taker_buy
+TO state_market_position
+AS
+WITH
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+    taker AS user,
+    maker_asset_id AS token_id,
+    sum(toInt256(maker_amount_filled)) AS buy_amount,
+    toInt256(0) AS sell_amount,
+    sum(toInt256(maker_amount_filled)) AS net_amount,
+    sum(toInt256(taker_amount_filled)) AS buy_cost,
+    toInt256(0) AS sell_revenue,
+    count() AS buy_count,
+    toUInt64(0) AS sell_count,
+    count() AS transactions
+FROM ctfexchange_order_filled
+WHERE maker_asset_id != 0
+GROUP BY
+    interval_min,
+    user, token_id,
+    timestamp;
+
+-- Materialized View for Market Positions from OrderFilled taker SELL events --
+-- When makerAssetId = 0: maker is the buyer (pays USDC), so taker is the seller.
+-- Taker sells taker_amount_filled tokens (taker_asset_id) and receives maker_amount_filled USDC.
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_market_position_taker_sell
+TO state_market_position
+AS
+WITH
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+    taker AS user,
+    taker_asset_id AS token_id,
+    toInt256(0) AS buy_amount,
+    sum(toInt256(taker_amount_filled)) AS sell_amount,
+    -sum(toInt256(taker_amount_filled)) AS net_amount,
+    toInt256(0) AS buy_cost,
+    sum(toInt256(maker_amount_filled)) AS sell_revenue,
+    toUInt64(0) AS buy_count,
+    count() AS sell_count,
+    count() AS transactions
+FROM ctfexchange_order_filled
+WHERE maker_asset_id = 0
+GROUP BY
+    interval_min,
+    user, token_id,
+    timestamp;
