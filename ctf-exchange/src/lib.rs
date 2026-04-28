@@ -16,6 +16,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     let mut total_new_operator = 0;
     let mut total_order_cancelled = 0;
     let mut total_order_filled = 0;
+    let mut total_order_filled_self_reference_skipped = 0;
     let mut total_orders_matched = 0;
     let mut total_proxy_factory_updated = 0;
     let mut total_removed_admin = 0;
@@ -96,6 +97,11 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
 
             // OrderFilled event
             if let Some(event) = v1::ctfexchange::events::OrderFilled::match_and_decode(log) {
+                if is_self_referential_taker(&event.taker, &log.address) {
+                    total_order_filled_self_reference_skipped += 1;
+                    continue;
+                }
+
                 total_order_filled += 1;
                 let event = pb::log::Log::OrderFilled(pb::OrderFilled {
                     order_hash: event.order_hash.to_vec(),
@@ -115,6 +121,11 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             if let Some(event) = v2::ctfexchange::events::OrderFilled::match_and_decode(log) {
+                if is_self_referential_taker(&event.taker, &log.address) {
+                    total_order_filled_self_reference_skipped += 1;
+                    continue;
+                }
+
                 total_order_filled += 1;
                 let event = pb::log::Log::OrderFilled(pb::OrderFilled {
                     order_hash: event.order_hash.to_vec(),
@@ -336,6 +347,10 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     substreams::log::info!("Total NewOperator events: {}", total_new_operator);
     substreams::log::info!("Total OrderCancelled events: {}", total_order_cancelled);
     substreams::log::info!("Total OrderFilled events: {}", total_order_filled);
+    substreams::log::info!(
+        "Total self-referential OrderFilled events skipped: {}",
+        total_order_filled_self_reference_skipped
+    );
     substreams::log::info!("Total OrdersMatched events: {}", total_orders_matched);
     substreams::log::info!(
         "Total ProxyFactoryUpdated events: {}",
@@ -372,6 +387,10 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     substreams::log::info!("Total Wrapped events: {}", total_wrapped);
     substreams::log::info!("Total Unwrapped events: {}", total_unwrapped);
     Ok(events)
+}
+
+fn is_self_referential_taker(taker: &[u8], log_address: &[u8]) -> bool {
+    taker == log_address
 }
 
 fn side_to_u32(side: &BigInt) -> Result<u32, substreams::errors::Error> {
