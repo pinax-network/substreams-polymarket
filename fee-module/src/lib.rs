@@ -1,7 +1,7 @@
 use common::{CreateLog, CreateTransaction};
 use proto::pb::fee_module::v1 as pb;
 use substreams::Hex;
-use substreams_abis::evm::polymarket::feemodule::events as events;
+use substreams_abis::prediction::polymarket::v1::feemodule::events;
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 

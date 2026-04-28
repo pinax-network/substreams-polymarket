@@ -29,5 +29,5 @@ modules:
 network: polygon
 
 params:
-  # UmaCtfAdapter v3.0 + UmaCtfAdapter v2.0
-  map_events: "evt_addr:0x2f5e3684cb1f318ec51b00edba38d79ac2c0aa9d || evt_addr:0x6a9d222616c90fca5754cd1333cfd9b7fb6a4f74"
+  # UmaCtfAdapter v3.0 + UmaCtfAdapter v2.0 + UMA Optimistic Oracle
+  map_events: "evt_addr:0x2f5e3684cb1f318ec51b00edba38d79ac2c0aa9d || evt_addr:0x6a9d222616c90fca5754cd1333cfd9b7fb6a4f74 || evt_addr:0xcb1822859cef82cd2eb4e6276c7916e692995130"

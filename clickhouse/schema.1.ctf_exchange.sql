@@ -6,12 +6,17 @@ ALTER TABLE ctfexchange_order_filled
     ADD COLUMN IF NOT EXISTS order_hash           String COMMENT 'Order hash identifier',
     ADD COLUMN IF NOT EXISTS maker                String COMMENT 'Maker address',
     ADD COLUMN IF NOT EXISTS taker                String COMMENT 'Taker address',
-    ADD COLUMN IF NOT EXISTS maker_asset_id       UInt256 COMMENT 'Maker asset token ID',
-    ADD COLUMN IF NOT EXISTS taker_asset_id       UInt256 COMMENT 'Taker asset token ID',
+    ADD COLUMN IF NOT EXISTS maker_asset_id       UInt256 COMMENT 'V1 maker asset token ID, derived from V2 side/token_id when present',
+    ADD COLUMN IF NOT EXISTS taker_asset_id       UInt256 COMMENT 'V1 taker asset token ID, derived from V2 side/token_id when present',
+    ADD COLUMN IF NOT EXISTS side                 UInt8 COMMENT 'V2 order side',
+    ADD COLUMN IF NOT EXISTS token_id             UInt256 COMMENT 'V2 traded token ID',
     ADD COLUMN IF NOT EXISTS maker_amount_filled  UInt256 COMMENT 'Maker amount filled',
     ADD COLUMN IF NOT EXISTS taker_amount_filled  UInt256 COMMENT 'Taker amount filled',
-    ADD COLUMN IF NOT EXISTS fee                  UInt256 COMMENT 'Fee amount';
+    ADD COLUMN IF NOT EXISTS fee                  UInt256 COMMENT 'Fee amount',
+    ADD COLUMN IF NOT EXISTS builder              String COMMENT 'V2 builder bytes32',
+    ADD COLUMN IF NOT EXISTS metadata             String COMMENT 'V2 metadata bytes32';
 ALTER TABLE ctfexchange_order_filled
+    ADD INDEX IF NOT EXISTS idx_token_id (token_id) TYPE bloom_filter GRANULARITY 1,
     ADD INDEX IF NOT EXISTS idx_taker_asset_id (taker_asset_id) TYPE bloom_filter GRANULARITY 1,
     ADD INDEX IF NOT EXISTS idx_maker_asset_id (maker_asset_id) TYPE bloom_filter GRANULARITY 1,
     ADD INDEX IF NOT EXISTS idx_taker (taker) TYPE bloom_filter GRANULARITY 1,
@@ -23,7 +28,7 @@ COMMENT 'CTFExchange FeeCharged events';
 ALTER TABLE ctfexchange_fee_charged
     -- event information --
     ADD COLUMN IF NOT EXISTS receiver             String COMMENT 'Fee receiver address',
-    ADD COLUMN IF NOT EXISTS token_id             UInt256 COMMENT 'Token ID',
+    ADD COLUMN IF NOT EXISTS token_id             UInt256 COMMENT 'V1 token ID, V2 fees are pUSD only',
     ADD COLUMN IF NOT EXISTS amount               UInt256 COMMENT 'Fee amount';
 
 -- CTFExchange NewAdmin --
@@ -56,8 +61,10 @@ ALTER TABLE ctfexchange_orders_matched
     -- event information --
     ADD COLUMN IF NOT EXISTS taker_order_hash     String COMMENT 'Taker order hash',
     ADD COLUMN IF NOT EXISTS taker_order_maker    String COMMENT 'Taker order maker address',
-    ADD COLUMN IF NOT EXISTS maker_asset_id       UInt256 COMMENT 'Maker asset token ID',
-    ADD COLUMN IF NOT EXISTS taker_asset_id       UInt256 COMMENT 'Taker asset token ID',
+    ADD COLUMN IF NOT EXISTS maker_asset_id       UInt256 COMMENT 'V1 maker asset token ID, derived from V2 side/token_id when present',
+    ADD COLUMN IF NOT EXISTS taker_asset_id       UInt256 COMMENT 'V1 taker asset token ID, derived from V2 side/token_id when present',
+    ADD COLUMN IF NOT EXISTS side                 UInt8 COMMENT 'V2 taker order side',
+    ADD COLUMN IF NOT EXISTS token_id             UInt256 COMMENT 'V2 traded token ID',
     ADD COLUMN IF NOT EXISTS maker_amount_filled  UInt256 COMMENT 'Maker amount filled',
     ADD COLUMN IF NOT EXISTS taker_amount_filled  UInt256 COMMENT 'Taker amount filled';
 
@@ -115,3 +122,65 @@ COMMENT 'CTFExchange TradingUnpaused events';
 ALTER TABLE ctfexchange_trading_unpaused
     -- event information --
     ADD COLUMN IF NOT EXISTS pauser               String COMMENT 'Address that unpaused trading';
+
+-- CTFExchange FeeReceiverUpdated --
+CREATE TABLE IF NOT EXISTS ctfexchange_fee_receiver_updated AS TEMPLATE_LOG
+COMMENT 'CTFExchange V2 FeeReceiverUpdated events';
+ALTER TABLE ctfexchange_fee_receiver_updated
+    ADD COLUMN IF NOT EXISTS fee_receiver         String COMMENT 'Fee receiver address';
+
+-- CTFExchange MaxFeeRateUpdated --
+CREATE TABLE IF NOT EXISTS ctfexchange_max_fee_rate_updated AS TEMPLATE_LOG
+COMMENT 'CTFExchange V2 MaxFeeRateUpdated events';
+ALTER TABLE ctfexchange_max_fee_rate_updated
+    ADD COLUMN IF NOT EXISTS max_fee_rate         UInt256 COMMENT 'Maximum fee rate';
+
+-- CTFExchange OrderPreapproved --
+CREATE TABLE IF NOT EXISTS ctfexchange_order_preapproved AS TEMPLATE_LOG
+COMMENT 'CTFExchange V2 OrderPreapproved events';
+ALTER TABLE ctfexchange_order_preapproved
+    ADD COLUMN IF NOT EXISTS order_hash           String COMMENT 'Order hash identifier';
+
+-- CTFExchange OrderPreapprovalInvalidated --
+CREATE TABLE IF NOT EXISTS ctfexchange_order_preapproval_invalidated AS TEMPLATE_LOG
+COMMENT 'CTFExchange V2 OrderPreapprovalInvalidated events';
+ALTER TABLE ctfexchange_order_preapproval_invalidated
+    ADD COLUMN IF NOT EXISTS order_hash           String COMMENT 'Order hash identifier';
+
+-- CTFExchange UserPaused --
+CREATE TABLE IF NOT EXISTS ctfexchange_user_paused AS TEMPLATE_LOG
+COMMENT 'CTFExchange V2 UserPaused events';
+ALTER TABLE ctfexchange_user_paused
+    ADD COLUMN IF NOT EXISTS user                 String COMMENT 'Paused user address',
+    ADD COLUMN IF NOT EXISTS effective_pause_block UInt256 COMMENT 'Block where pause becomes effective';
+
+-- CTFExchange UserUnpaused --
+CREATE TABLE IF NOT EXISTS ctfexchange_user_unpaused AS TEMPLATE_LOG
+COMMENT 'CTFExchange V2 UserUnpaused events';
+ALTER TABLE ctfexchange_user_unpaused
+    ADD COLUMN IF NOT EXISTS user                 String COMMENT 'Unpaused user address';
+
+-- CTFExchange UserPauseBlockIntervalUpdated --
+CREATE TABLE IF NOT EXISTS ctfexchange_user_pause_block_interval_updated AS TEMPLATE_LOG
+COMMENT 'CTFExchange V2 UserPauseBlockIntervalUpdated events';
+ALTER TABLE ctfexchange_user_pause_block_interval_updated
+    ADD COLUMN IF NOT EXISTS old_interval         UInt256 COMMENT 'Previous pause block interval',
+    ADD COLUMN IF NOT EXISTS new_interval         UInt256 COMMENT 'New pause block interval';
+
+-- CollateralToken Wrapped --
+CREATE TABLE IF NOT EXISTS collateral_token_wrapped AS TEMPLATE_LOG
+COMMENT 'pUSD CollateralToken Wrapped events';
+ALTER TABLE collateral_token_wrapped
+    ADD COLUMN IF NOT EXISTS caller               String COMMENT 'Caller address',
+    ADD COLUMN IF NOT EXISTS asset                String COMMENT 'Wrapped asset address',
+    ADD COLUMN IF NOT EXISTS to_address           String COMMENT 'pUSD recipient address',
+    ADD COLUMN IF NOT EXISTS amount               UInt256 COMMENT 'Wrapped amount';
+
+-- CollateralToken Unwrapped --
+CREATE TABLE IF NOT EXISTS collateral_token_unwrapped AS TEMPLATE_LOG
+COMMENT 'pUSD CollateralToken Unwrapped events';
+ALTER TABLE collateral_token_unwrapped
+    ADD COLUMN IF NOT EXISTS caller               String COMMENT 'Caller address',
+    ADD COLUMN IF NOT EXISTS asset                String COMMENT 'Unwrapped asset address',
+    ADD COLUMN IF NOT EXISTS to_address           String COMMENT 'Asset recipient address',
+    ADD COLUMN IF NOT EXISTS amount               UInt256 COMMENT 'Unwrapped amount';

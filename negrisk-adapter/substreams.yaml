@@ -29,5 +29,5 @@ modules:
 network: polygon
 
 params:
-  # Neg Risk Adapter (current) + Neg Risk Adapter (legacy)
+  # V2/V1 Neg Risk Adapter + legacy Neg Risk Adapter
   map_events: "evt_addr:0xd91e80cf2e7be2e162c6513ced06f1dd0da35296 || evt_addr:0xf16a3bdffb7b882e3236243e901f6c5953e2ee0d"

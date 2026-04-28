@@ -1,7 +1,7 @@
 use common::{CreateLog, CreateTransaction};
 use proto::pb::safe_proxy_factory::v1 as pb;
 use substreams::Hex;
-use substreams_abis::evm::polymarket::safeproxyfactory::events as safe_proxy_factory;
+use substreams_abis::prediction::polymarket::v1::safeproxyfactory::events as safe_proxy_factory;
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 

@@ -37,12 +37,21 @@ message Log {
     TokenRegistered token_registered = 20;
     TradingPaused trading_paused = 21;
     TradingUnpaused trading_unpaused = 22;
+    FeeReceiverUpdated fee_receiver_updated = 23;
+    MaxFeeRateUpdated max_fee_rate_updated = 24;
+    OrderPreapproved order_preapproved = 25;
+    OrderPreapprovalInvalidated order_preapproval_invalidated = 26;
+    UserPaused user_paused = 27;
+    UserUnpaused user_unpaused = 28;
+    UserPauseBlockIntervalUpdated user_pause_block_interval_updated = 29;
+    Wrapped wrapped = 30;
+    Unwrapped unwrapped = 31;
   }
 }
 
 message FeeCharged {
   bytes receiver = 1; // address
-  string token_id = 2; // uint256
+  optional string token_id = 2; // uint256 (V1 only)
   string amount = 3; // uint256
 }
 
@@ -64,20 +73,26 @@ message OrderFilled {
   bytes order_hash = 1; // bytes32
   bytes maker = 2; // address
   bytes taker = 3; // address
-  string maker_asset_id = 4; // uint256
-  string taker_asset_id = 5; // uint256
+  optional string maker_asset_id = 4; // uint256 (V1 only)
+  optional string taker_asset_id = 5; // uint256 (V1 only)
   string maker_amount_filled = 6; // uint256
   string taker_amount_filled = 7; // uint256
   string fee = 8; // uint256
+  optional uint32 side = 9; // uint8 (V2 only)
+  optional string token_id = 10; // uint256 (V2 only)
+  optional bytes builder = 11; // bytes32 (V2 only)
+  optional bytes metadata = 12; // bytes32 (V2 only)
 }
 
 message OrdersMatched {
   bytes taker_order_hash = 1; // bytes32
   bytes taker_order_maker = 2; // address
-  string maker_asset_id = 3; // uint256
-  string taker_asset_id = 4; // uint256
+  optional string maker_asset_id = 3; // uint256 (V1 only)
+  optional string taker_asset_id = 4; // uint256 (V1 only)
   string maker_amount_filled = 5; // uint256
   string taker_amount_filled = 6; // uint256
+  optional uint32 side = 7; // uint8 (V2 only)
+  optional string token_id = 8; // uint256 (V2 only)
 }
 
 message ProxyFactoryUpdated {
@@ -122,4 +137,48 @@ message TradingPaused {
 
 message TradingUnpaused {
   bytes pauser = 1; // address
+}
+
+message FeeReceiverUpdated {
+  bytes fee_receiver = 1; // address
+}
+
+message MaxFeeRateUpdated {
+  string max_fee_rate = 1; // uint256
+}
+
+message OrderPreapproved {
+  bytes order_hash = 1; // bytes32
+}
+
+message OrderPreapprovalInvalidated {
+  bytes order_hash = 1; // bytes32
+}
+
+message UserPaused {
+  bytes user = 1; // address
+  string effective_pause_block = 2; // uint256
+}
+
+message UserUnpaused {
+  bytes user = 1; // address
+}
+
+message UserPauseBlockIntervalUpdated {
+  string old_interval = 1; // uint256
+  string new_interval = 2; // uint256
+}
+
+message Wrapped {
+  bytes caller = 1; // address
+  bytes asset = 2; // address
+  bytes to = 3; // address
+  string amount = 4; // uint256
+}
+
+message Unwrapped {
+  bytes caller = 1; // address
+  bytes asset = 2; // address
+  bytes to = 3; // address
+  string amount = 4; // uint256
 }
