@@ -42,7 +42,7 @@ pub struct Log {
     pub topics: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     #[prost(bytes="vec", tag="4")]
     pub data: ::prost::alloc::vec::Vec<u8>,
-    #[prost(oneof="log::Log", tags="10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22")]
+    #[prost(oneof="log::Log", tags="10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31")]
     pub log: ::core::option::Option<log::Log>,
 }
 /// Nested message and enum types in `Log`.
@@ -77,6 +77,24 @@ pub mod log {
         TradingPaused(super::TradingPaused),
         #[prost(message, tag="22")]
         TradingUnpaused(super::TradingUnpaused),
+        #[prost(message, tag="23")]
+        FeeReceiverUpdated(super::FeeReceiverUpdated),
+        #[prost(message, tag="24")]
+        MaxFeeRateUpdated(super::MaxFeeRateUpdated),
+        #[prost(message, tag="25")]
+        OrderPreapproved(super::OrderPreapproved),
+        #[prost(message, tag="26")]
+        OrderPreapprovalInvalidated(super::OrderPreapprovalInvalidated),
+        #[prost(message, tag="27")]
+        UserPaused(super::UserPaused),
+        #[prost(message, tag="28")]
+        UserUnpaused(super::UserUnpaused),
+        #[prost(message, tag="29")]
+        UserPauseBlockIntervalUpdated(super::UserPauseBlockIntervalUpdated),
+        #[prost(message, tag="30")]
+        Wrapped(super::Wrapped),
+        #[prost(message, tag="31")]
+        Unwrapped(super::Unwrapped),
     }
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -85,9 +103,9 @@ pub struct FeeCharged {
     /// address
     #[prost(bytes="vec", tag="1")]
     pub receiver: ::prost::alloc::vec::Vec<u8>,
-    /// uint256
-    #[prost(string, tag="2")]
-    pub token_id: ::prost::alloc::string::String,
+    /// uint256 (V1 only)
+    #[prost(string, optional, tag="2")]
+    pub token_id: ::core::option::Option<::prost::alloc::string::String>,
     /// uint256
     #[prost(string, tag="3")]
     pub amount: ::prost::alloc::string::String,
@@ -131,12 +149,12 @@ pub struct OrderFilled {
     /// address
     #[prost(bytes="vec", tag="3")]
     pub taker: ::prost::alloc::vec::Vec<u8>,
-    /// uint256
-    #[prost(string, tag="4")]
-    pub maker_asset_id: ::prost::alloc::string::String,
-    /// uint256
-    #[prost(string, tag="5")]
-    pub taker_asset_id: ::prost::alloc::string::String,
+    /// uint256 (V1 only)
+    #[prost(string, optional, tag="4")]
+    pub maker_asset_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// uint256 (V1 only)
+    #[prost(string, optional, tag="5")]
+    pub taker_asset_id: ::core::option::Option<::prost::alloc::string::String>,
     /// uint256
     #[prost(string, tag="6")]
     pub maker_amount_filled: ::prost::alloc::string::String,
@@ -146,6 +164,18 @@ pub struct OrderFilled {
     /// uint256
     #[prost(string, tag="8")]
     pub fee: ::prost::alloc::string::String,
+    /// uint8 (V2 only)
+    #[prost(uint32, optional, tag="9")]
+    pub side: ::core::option::Option<u32>,
+    /// uint256 (V2 only)
+    #[prost(string, optional, tag="10")]
+    pub token_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// bytes32 (V2 only)
+    #[prost(bytes="vec", optional, tag="11")]
+    pub builder: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+    /// bytes32 (V2 only)
+    #[prost(bytes="vec", optional, tag="12")]
+    pub metadata: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -156,18 +186,24 @@ pub struct OrdersMatched {
     /// address
     #[prost(bytes="vec", tag="2")]
     pub taker_order_maker: ::prost::alloc::vec::Vec<u8>,
-    /// uint256
-    #[prost(string, tag="3")]
-    pub maker_asset_id: ::prost::alloc::string::String,
-    /// uint256
-    #[prost(string, tag="4")]
-    pub taker_asset_id: ::prost::alloc::string::String,
+    /// uint256 (V1 only)
+    #[prost(string, optional, tag="3")]
+    pub maker_asset_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// uint256 (V1 only)
+    #[prost(string, optional, tag="4")]
+    pub taker_asset_id: ::core::option::Option<::prost::alloc::string::String>,
     /// uint256
     #[prost(string, tag="5")]
     pub maker_amount_filled: ::prost::alloc::string::String,
     /// uint256
     #[prost(string, tag="6")]
     pub taker_amount_filled: ::prost::alloc::string::String,
+    /// uint8 (V2 only)
+    #[prost(uint32, optional, tag="7")]
+    pub side: ::core::option::Option<u32>,
+    /// uint256 (V2 only)
+    #[prost(string, optional, tag="8")]
+    pub token_id: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -253,5 +289,92 @@ pub struct TradingUnpaused {
     /// address
     #[prost(bytes="vec", tag="1")]
     pub pauser: ::prost::alloc::vec::Vec<u8>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FeeReceiverUpdated {
+    /// address
+    #[prost(bytes="vec", tag="1")]
+    pub fee_receiver: ::prost::alloc::vec::Vec<u8>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MaxFeeRateUpdated {
+    /// uint256
+    #[prost(string, tag="1")]
+    pub max_fee_rate: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OrderPreapproved {
+    /// bytes32
+    #[prost(bytes="vec", tag="1")]
+    pub order_hash: ::prost::alloc::vec::Vec<u8>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OrderPreapprovalInvalidated {
+    /// bytes32
+    #[prost(bytes="vec", tag="1")]
+    pub order_hash: ::prost::alloc::vec::Vec<u8>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UserPaused {
+    /// address
+    #[prost(bytes="vec", tag="1")]
+    pub user: ::prost::alloc::vec::Vec<u8>,
+    /// uint256
+    #[prost(string, tag="2")]
+    pub effective_pause_block: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UserUnpaused {
+    /// address
+    #[prost(bytes="vec", tag="1")]
+    pub user: ::prost::alloc::vec::Vec<u8>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UserPauseBlockIntervalUpdated {
+    /// uint256
+    #[prost(string, tag="1")]
+    pub old_interval: ::prost::alloc::string::String,
+    /// uint256
+    #[prost(string, tag="2")]
+    pub new_interval: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Wrapped {
+    /// address
+    #[prost(bytes="vec", tag="1")]
+    pub caller: ::prost::alloc::vec::Vec<u8>,
+    /// address
+    #[prost(bytes="vec", tag="2")]
+    pub asset: ::prost::alloc::vec::Vec<u8>,
+    /// address
+    #[prost(bytes="vec", tag="3")]
+    pub to: ::prost::alloc::vec::Vec<u8>,
+    /// uint256
+    #[prost(string, tag="4")]
+    pub amount: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Unwrapped {
+    /// address
+    #[prost(bytes="vec", tag="1")]
+    pub caller: ::prost::alloc::vec::Vec<u8>,
+    /// address
+    #[prost(bytes="vec", tag="2")]
+    pub asset: ::prost::alloc::vec::Vec<u8>,
+    /// address
+    #[prost(bytes="vec", tag="3")]
+    pub to: ::prost::alloc::vec::Vec<u8>,
+    /// uint256
+    #[prost(string, tag="4")]
+    pub amount: ::prost::alloc::string::String,
 }
 // @@protoc_insertion_point(module)

@@ -19,8 +19,8 @@ version = "0.0.0"
 license = "Apache-2.0"
 
 [workspace.dependencies]
-substreams = "0.7.0"
-substreams-abis = { git = "https://github.com/pinax-network/substreams-abis.git", rev = "65c72746864f1189fca7de488934ca8d945b5e76" }
+substreams = "0.7.6"
+substreams-abis = { git = "https://github.com/pinax-network/substreams-abis.git", rev = "a72c8d754d0e0a2a1c2486317f4f5f38359d54cc" }
 substreams-ethereum = "0.11.1"
 substreams-database-change = "3.0.0"
 prost = "0.13"

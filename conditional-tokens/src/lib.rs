@@ -1,7 +1,7 @@
 use common::{CreateLog, CreateTransaction};
 use proto::pb::conditional_tokens::v1 as pb;
 use substreams::Hex;
-use substreams_abis::evm::polymarket::conditionaltokens::events as conditional_tokens;
+use substreams_abis::prediction::polymarket::v1::conditionaltokens::events as conditional_tokens;
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 

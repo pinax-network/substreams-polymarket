@@ -1,8 +1,9 @@
 mod store;
 use common::{CreateLog, CreateTransaction};
 use proto::pb::ctf_exchange::v1 as pb;
+use substreams::scalar::BigInt;
 use substreams::Hex;
-use substreams_abis::evm::polymarket::ctfexchange as polymarket;
+use substreams_abis::prediction::polymarket::{v1, v2};
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 
@@ -23,6 +24,15 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     let mut total_token_registered = 0;
     let mut total_trading_paused = 0;
     let mut total_trading_unpaused = 0;
+    let mut total_fee_receiver_updated = 0;
+    let mut total_max_fee_rate_updated = 0;
+    let mut total_order_preapproved = 0;
+    let mut total_order_preapproval_invalidated = 0;
+    let mut total_user_paused = 0;
+    let mut total_user_unpaused = 0;
+    let mut total_user_pause_block_interval_updated = 0;
+    let mut total_wrapped = 0;
+    let mut total_unwrapped = 0;
 
     for trx in block.transactions() {
         let mut transaction = pb::Transaction::create_transaction(trx);
@@ -35,18 +45,28 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // FeeCharged event
-            if let Some(event) = polymarket::events::FeeCharged::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::FeeCharged::match_and_decode(log) {
                 total_fee_charged += 1;
                 let event = pb::log::Log::FeeCharged(pb::FeeCharged {
                     receiver: event.receiver.to_vec(),
-                    token_id: event.token_id.to_string(),
+                    token_id: Some(event.token_id.to_string()),
+                    amount: event.amount.to_string(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::ctfexchange::events::FeeCharged::match_and_decode(log) {
+                total_fee_charged += 1;
+                let event = pb::log::Log::FeeCharged(pb::FeeCharged {
+                    receiver: event.receiver.to_vec(),
+                    token_id: None,
                     amount: event.amount.to_string(),
                 });
                 transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // NewAdmin event
-            if let Some(event) = polymarket::events::NewAdmin::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::NewAdmin::match_and_decode(log) {
                 total_new_admin += 1;
                 let event = pb::log::Log::NewAdmin(pb::NewAdmin {
                     new_admin_address: event.new_admin_address.to_vec(),
@@ -56,7 +76,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // NewOperator event
-            if let Some(event) = polymarket::events::NewOperator::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::NewOperator::match_and_decode(log) {
                 total_new_operator += 1;
                 let event = pb::log::Log::NewOperator(pb::NewOperator {
                     new_operator_address: event.new_operator_address.to_vec(),
@@ -66,7 +86,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // OrderCancelled event
-            if let Some(event) = polymarket::events::OrderCancelled::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::OrderCancelled::match_and_decode(log) {
                 total_order_cancelled += 1;
                 let event = pb::log::Log::OrderCancelled(pb::OrderCancelled {
                     order_hash: event.order_hash.to_vec(),
@@ -75,37 +95,78 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // OrderFilled event
-            if let Some(event) = polymarket::events::OrderFilled::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::OrderFilled::match_and_decode(log) {
                 total_order_filled += 1;
                 let event = pb::log::Log::OrderFilled(pb::OrderFilled {
                     order_hash: event.order_hash.to_vec(),
                     maker: event.maker.to_vec(),
                     taker: event.taker.to_vec(),
-                    maker_asset_id: event.maker_asset_id.to_string(),
-                    taker_asset_id: event.taker_asset_id.to_string(),
+                    maker_asset_id: Some(event.maker_asset_id.to_string()),
+                    taker_asset_id: Some(event.taker_asset_id.to_string()),
                     maker_amount_filled: event.maker_amount_filled.to_string(),
                     taker_amount_filled: event.taker_amount_filled.to_string(),
                     fee: event.fee.to_string(),
+                    side: None,
+                    token_id: None,
+                    builder: None,
+                    metadata: None,
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::ctfexchange::events::OrderFilled::match_and_decode(log) {
+                total_order_filled += 1;
+                let event = pb::log::Log::OrderFilled(pb::OrderFilled {
+                    order_hash: event.order_hash.to_vec(),
+                    maker: event.maker.to_vec(),
+                    taker: event.taker.to_vec(),
+                    maker_asset_id: None,
+                    taker_asset_id: None,
+                    maker_amount_filled: event.maker_amount_filled.to_string(),
+                    taker_amount_filled: event.taker_amount_filled.to_string(),
+                    fee: event.fee.to_string(),
+                    side: Some(side_to_u32(&event.side)?),
+                    token_id: Some(event.token_id.to_string()),
+                    builder: Some(event.builder.to_vec()),
+                    metadata: Some(event.metadata.to_vec()),
                 });
                 transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // OrdersMatched event
-            if let Some(event) = polymarket::events::OrdersMatched::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::OrdersMatched::match_and_decode(log) {
                 total_orders_matched += 1;
                 let event = pb::log::Log::OrdersMatched(pb::OrdersMatched {
                     taker_order_hash: event.taker_order_hash.to_vec(),
                     taker_order_maker: event.taker_order_maker.to_vec(),
-                    maker_asset_id: event.maker_asset_id.to_string(),
-                    taker_asset_id: event.taker_asset_id.to_string(),
+                    maker_asset_id: Some(event.maker_asset_id.to_string()),
+                    taker_asset_id: Some(event.taker_asset_id.to_string()),
                     maker_amount_filled: event.maker_amount_filled.to_string(),
                     taker_amount_filled: event.taker_amount_filled.to_string(),
+                    side: None,
+                    token_id: None,
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::ctfexchange::events::OrdersMatched::match_and_decode(log) {
+                total_orders_matched += 1;
+                let event = pb::log::Log::OrdersMatched(pb::OrdersMatched {
+                    taker_order_hash: event.taker_order_hash.to_vec(),
+                    taker_order_maker: event.taker_order_maker.to_vec(),
+                    maker_asset_id: None,
+                    taker_asset_id: None,
+                    maker_amount_filled: event.maker_amount_filled.to_string(),
+                    taker_amount_filled: event.taker_amount_filled.to_string(),
+                    side: Some(side_to_u32(&event.side)?),
+                    token_id: Some(event.token_id.to_string()),
                 });
                 transaction.logs.push(pb::Log::create_log(log, event));
             }
 
             // ProxyFactoryUpdated event
-            if let Some(event) = polymarket::events::ProxyFactoryUpdated::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::ProxyFactoryUpdated::match_and_decode(log)
+            {
                 total_proxy_factory_updated += 1;
                 let event = pb::log::Log::ProxyFactoryUpdated(pb::ProxyFactoryUpdated {
                     old_proxy_factory: event.old_proxy_factory.to_vec(),
@@ -115,7 +176,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // RemovedAdmin event
-            if let Some(event) = polymarket::events::RemovedAdmin::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::RemovedAdmin::match_and_decode(log) {
                 total_removed_admin += 1;
                 let event = pb::log::Log::RemovedAdmin(pb::RemovedAdmin {
                     removed_admin: event.removed_admin.to_vec(),
@@ -125,7 +186,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // RemovedOperator event
-            if let Some(event) = polymarket::events::RemovedOperator::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::RemovedOperator::match_and_decode(log) {
                 total_removed_operator += 1;
                 let event = pb::log::Log::RemovedOperator(pb::RemovedOperator {
                     removed_operator: event.removed_operator.to_vec(),
@@ -135,7 +196,8 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // SafeFactoryUpdated event
-            if let Some(event) = polymarket::events::SafeFactoryUpdated::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::SafeFactoryUpdated::match_and_decode(log)
+            {
                 total_safe_factory_updated += 1;
                 let event = pb::log::Log::SafeFactoryUpdated(pb::SafeFactoryUpdated {
                     old_safe_factory: event.old_safe_factory.to_vec(),
@@ -145,7 +207,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // TokenRegistered event
-            if let Some(event) = polymarket::events::TokenRegistered::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::TokenRegistered::match_and_decode(log) {
                 total_token_registered += 1;
                 let event = pb::log::Log::TokenRegistered(pb::TokenRegistered {
                     condition_id: event.condition_id.to_vec(),
@@ -156,7 +218,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // TradingPaused event
-            if let Some(event) = polymarket::events::TradingPaused::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::TradingPaused::match_and_decode(log) {
                 total_trading_paused += 1;
                 let event = pb::log::Log::TradingPaused(pb::TradingPaused {
                     pauser: event.pauser.to_vec(),
@@ -165,10 +227,98 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
             }
 
             // TradingUnpaused event
-            if let Some(event) = polymarket::events::TradingUnpaused::match_and_decode(log) {
+            if let Some(event) = v1::ctfexchange::events::TradingUnpaused::match_and_decode(log) {
                 total_trading_unpaused += 1;
                 let event = pb::log::Log::TradingUnpaused(pb::TradingUnpaused {
                     pauser: event.pauser.to_vec(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::ctfexchange::events::FeeReceiverUpdated::match_and_decode(log)
+            {
+                total_fee_receiver_updated += 1;
+                let event = pb::log::Log::FeeReceiverUpdated(pb::FeeReceiverUpdated {
+                    fee_receiver: event.fee_receiver.to_vec(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::ctfexchange::events::MaxFeeRateUpdated::match_and_decode(log) {
+                total_max_fee_rate_updated += 1;
+                let event = pb::log::Log::MaxFeeRateUpdated(pb::MaxFeeRateUpdated {
+                    max_fee_rate: event.max_fee_rate.to_string(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::ctfexchange::events::OrderPreapproved::match_and_decode(log) {
+                total_order_preapproved += 1;
+                let event = pb::log::Log::OrderPreapproved(pb::OrderPreapproved {
+                    order_hash: event.order_hash.to_vec(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) =
+                v2::ctfexchange::events::OrderPreapprovalInvalidated::match_and_decode(log)
+            {
+                total_order_preapproval_invalidated += 1;
+                let event =
+                    pb::log::Log::OrderPreapprovalInvalidated(pb::OrderPreapprovalInvalidated {
+                        order_hash: event.order_hash.to_vec(),
+                    });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::ctfexchange::events::UserPaused::match_and_decode(log) {
+                total_user_paused += 1;
+                let event = pb::log::Log::UserPaused(pb::UserPaused {
+                    user: event.user.to_vec(),
+                    effective_pause_block: event.effective_pause_block.to_string(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::ctfexchange::events::UserUnpaused::match_and_decode(log) {
+                total_user_unpaused += 1;
+                let event = pb::log::Log::UserUnpaused(pb::UserUnpaused {
+                    user: event.user.to_vec(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) =
+                v2::ctfexchange::events::UserPauseBlockIntervalUpdated::match_and_decode(log)
+            {
+                total_user_pause_block_interval_updated += 1;
+                let event = pb::log::Log::UserPauseBlockIntervalUpdated(
+                    pb::UserPauseBlockIntervalUpdated {
+                        old_interval: event.old_interval.to_string(),
+                        new_interval: event.new_interval.to_string(),
+                    },
+                );
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::collateraltoken::events::Wrapped::match_and_decode(log) {
+                total_wrapped += 1;
+                let event = pb::log::Log::Wrapped(pb::Wrapped {
+                    caller: event.caller.to_vec(),
+                    asset: event.asset.to_vec(),
+                    to: event.to.to_vec(),
+                    amount: event.amount.to_string(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            if let Some(event) = v2::collateraltoken::events::Unwrapped::match_and_decode(log) {
+                total_unwrapped += 1;
+                let event = pb::log::Log::Unwrapped(pb::Unwrapped {
+                    caller: event.caller.to_vec(),
+                    asset: event.asset.to_vec(),
+                    to: event.to.to_vec(),
+                    amount: event.amount.to_string(),
                 });
                 transaction.logs.push(pb::Log::create_log(log, event));
             }
@@ -200,5 +350,34 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     substreams::log::info!("Total TokenRegistered events: {}", total_token_registered);
     substreams::log::info!("Total TradingPaused events: {}", total_trading_paused);
     substreams::log::info!("Total TradingUnpaused events: {}", total_trading_unpaused);
+    substreams::log::info!(
+        "Total FeeReceiverUpdated events: {}",
+        total_fee_receiver_updated
+    );
+    substreams::log::info!(
+        "Total MaxFeeRateUpdated events: {}",
+        total_max_fee_rate_updated
+    );
+    substreams::log::info!("Total OrderPreapproved events: {}", total_order_preapproved);
+    substreams::log::info!(
+        "Total OrderPreapprovalInvalidated events: {}",
+        total_order_preapproval_invalidated
+    );
+    substreams::log::info!("Total UserPaused events: {}", total_user_paused);
+    substreams::log::info!("Total UserUnpaused events: {}", total_user_unpaused);
+    substreams::log::info!(
+        "Total UserPauseBlockIntervalUpdated events: {}",
+        total_user_pause_block_interval_updated
+    );
+    substreams::log::info!("Total Wrapped events: {}", total_wrapped);
+    substreams::log::info!("Total Unwrapped events: {}", total_unwrapped);
     Ok(events)
+}
+
+fn side_to_u32(side: &BigInt) -> Result<u32, substreams::errors::Error> {
+    let value = u64::try_from(side)
+        .map_err(|err| substreams::errors::Error::msg(format!("invalid V2 side: {err}")))?;
+
+    u32::try_from(value)
+        .map_err(|err| substreams::errors::Error::msg(format!("V2 side out of range: {err}")))
 }

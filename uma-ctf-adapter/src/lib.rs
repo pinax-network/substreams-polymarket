@@ -1,7 +1,7 @@
 use common::{CreateLog, CreateTransaction};
 use proto::pb::uma_ctf_adapter::v1 as pb;
 use substreams::Hex;
-use substreams_abis::evm::polymarket::umactfadapter::v3::events as events;
+use substreams_abis::prediction::polymarket::v1::umactfadapter::v3::events;
 use substreams_ethereum::pb::eth::v2::Block;
 use substreams_ethereum::Event;
 
@@ -182,10 +182,7 @@ fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::er
     substreams::log::info!("Total QuestionPaused events: {}", total_question_paused);
     substreams::log::info!("Total QuestionReset events: {}", total_question_reset);
     substreams::log::info!("Total QuestionResolved events: {}", total_question_resolved);
-    substreams::log::info!(
-        "Total QuestionUnpaused events: {}",
-        total_question_unpaused
-    );
+    substreams::log::info!("Total QuestionUnpaused events: {}", total_question_unpaused);
     substreams::log::info!("Total RemovedAdmin events: {}", total_removed_admin);
     substreams::log::info!(
         "Total QuestionUnflagged events: {}",

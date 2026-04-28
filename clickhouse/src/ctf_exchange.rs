@@ -56,6 +56,41 @@ pub fn process_events(tables: &mut Tables, clock: &Clock, events: &ctf_exchange:
                 Some(ctf_exchange::log::Log::TradingUnpaused(event)) => {
                     process_trading_unpaused(tables, clock, tx, log, tx_index, log_index, event);
                 }
+                Some(ctf_exchange::log::Log::FeeReceiverUpdated(event)) => {
+                    process_fee_receiver_updated(
+                        tables, clock, tx, log, tx_index, log_index, event,
+                    );
+                }
+                Some(ctf_exchange::log::Log::MaxFeeRateUpdated(event)) => {
+                    process_max_fee_rate_updated(
+                        tables, clock, tx, log, tx_index, log_index, event,
+                    );
+                }
+                Some(ctf_exchange::log::Log::OrderPreapproved(event)) => {
+                    process_order_preapproved(tables, clock, tx, log, tx_index, log_index, event);
+                }
+                Some(ctf_exchange::log::Log::OrderPreapprovalInvalidated(event)) => {
+                    process_order_preapproval_invalidated(
+                        tables, clock, tx, log, tx_index, log_index, event,
+                    );
+                }
+                Some(ctf_exchange::log::Log::UserPaused(event)) => {
+                    process_user_paused(tables, clock, tx, log, tx_index, log_index, event);
+                }
+                Some(ctf_exchange::log::Log::UserUnpaused(event)) => {
+                    process_user_unpaused(tables, clock, tx, log, tx_index, log_index, event);
+                }
+                Some(ctf_exchange::log::Log::UserPauseBlockIntervalUpdated(event)) => {
+                    process_user_pause_block_interval_updated(
+                        tables, clock, tx, log, tx_index, log_index, event,
+                    );
+                }
+                Some(ctf_exchange::log::Log::Wrapped(event)) => {
+                    process_wrapped(tables, clock, tx, log, tx_index, log_index, event);
+                }
+                Some(ctf_exchange::log::Log::Unwrapped(event)) => {
+                    process_unwrapped(tables, clock, tx, log, tx_index, log_index, event);
+                }
                 _ => {}
             }
         }
@@ -81,11 +116,29 @@ fn process_order_filled(
     row.set("order_hash", bytes_to_hex(&event.order_hash));
     row.set("maker", bytes_to_hex(&event.maker));
     row.set("taker", bytes_to_hex(&event.taker));
-    row.set("maker_asset_id", &event.maker_asset_id);
-    row.set("taker_asset_id", &event.taker_asset_id);
+    let (maker_asset_id, taker_asset_id) = legacy_asset_ids(
+        event.side,
+        event.token_id.as_deref(),
+        event.maker_asset_id.as_deref(),
+        event.taker_asset_id.as_deref(),
+    );
+    row.set("maker_asset_id", maker_asset_id);
+    row.set("taker_asset_id", taker_asset_id);
+    if let Some(side) = event.side {
+        row.set("side", side);
+    }
+    if let Some(token_id) = &event.token_id {
+        row.set("token_id", token_id);
+    }
     row.set("maker_amount_filled", &event.maker_amount_filled);
     row.set("taker_amount_filled", &event.taker_amount_filled);
     row.set("fee", &event.fee);
+    if let Some(builder) = &event.builder {
+        row.set("builder", bytes_to_hex(builder));
+    }
+    if let Some(metadata) = &event.metadata {
+        row.set("metadata", bytes_to_hex(metadata));
+    }
 }
 
 fn process_fee_charged(
@@ -105,7 +158,9 @@ fn process_fee_charged(
     set_template_log(log, log_index, row);
 
     row.set("receiver", bytes_to_hex(&event.receiver));
-    row.set("token_id", &event.token_id);
+    if let Some(token_id) = &event.token_id {
+        row.set("token_id", token_id);
+    }
     row.set("amount", &event.amount);
 }
 
@@ -189,8 +244,20 @@ fn process_orders_matched(
 
     row.set("taker_order_hash", bytes_to_hex(&event.taker_order_hash));
     row.set("taker_order_maker", bytes_to_hex(&event.taker_order_maker));
-    row.set("maker_asset_id", &event.maker_asset_id);
-    row.set("taker_asset_id", &event.taker_asset_id);
+    let (maker_asset_id, taker_asset_id) = legacy_asset_ids(
+        event.side,
+        event.token_id.as_deref(),
+        event.maker_asset_id.as_deref(),
+        event.taker_asset_id.as_deref(),
+    );
+    row.set("maker_asset_id", maker_asset_id);
+    row.set("taker_asset_id", taker_asset_id);
+    if let Some(side) = event.side {
+        row.set("side", side);
+    }
+    if let Some(token_id) = &event.token_id {
+        row.set("token_id", token_id);
+    }
     row.set("maker_amount_filled", &event.maker_amount_filled);
     row.set("taker_amount_filled", &event.taker_amount_filled);
 }
@@ -332,4 +399,202 @@ fn process_trading_unpaused(
     set_template_log(log, log_index, row);
 
     row.set("pauser", bytes_to_hex(&event.pauser));
+}
+
+fn process_fee_receiver_updated(
+    tables: &mut Tables,
+    clock: &Clock,
+    tx: &ctf_exchange::Transaction,
+    log: &ctf_exchange::Log,
+    tx_index: usize,
+    log_index: usize,
+    event: &ctf_exchange::FeeReceiverUpdated,
+) {
+    let key = log_key(clock, log.ordinal);
+    let row = tables.create_row("ctfexchange_fee_receiver_updated", key);
+
+    set_clock(clock, row);
+    set_template_tx(tx, tx_index, row);
+    set_template_log(log, log_index, row);
+
+    row.set("fee_receiver", bytes_to_hex(&event.fee_receiver));
+}
+
+fn process_max_fee_rate_updated(
+    tables: &mut Tables,
+    clock: &Clock,
+    tx: &ctf_exchange::Transaction,
+    log: &ctf_exchange::Log,
+    tx_index: usize,
+    log_index: usize,
+    event: &ctf_exchange::MaxFeeRateUpdated,
+) {
+    let key = log_key(clock, log.ordinal);
+    let row = tables.create_row("ctfexchange_max_fee_rate_updated", key);
+
+    set_clock(clock, row);
+    set_template_tx(tx, tx_index, row);
+    set_template_log(log, log_index, row);
+
+    row.set("max_fee_rate", &event.max_fee_rate);
+}
+
+fn process_order_preapproved(
+    tables: &mut Tables,
+    clock: &Clock,
+    tx: &ctf_exchange::Transaction,
+    log: &ctf_exchange::Log,
+    tx_index: usize,
+    log_index: usize,
+    event: &ctf_exchange::OrderPreapproved,
+) {
+    let key = log_key(clock, log.ordinal);
+    let row = tables.create_row("ctfexchange_order_preapproved", key);
+
+    set_clock(clock, row);
+    set_template_tx(tx, tx_index, row);
+    set_template_log(log, log_index, row);
+
+    row.set("order_hash", bytes_to_hex(&event.order_hash));
+}
+
+fn process_order_preapproval_invalidated(
+    tables: &mut Tables,
+    clock: &Clock,
+    tx: &ctf_exchange::Transaction,
+    log: &ctf_exchange::Log,
+    tx_index: usize,
+    log_index: usize,
+    event: &ctf_exchange::OrderPreapprovalInvalidated,
+) {
+    let key = log_key(clock, log.ordinal);
+    let row = tables.create_row("ctfexchange_order_preapproval_invalidated", key);
+
+    set_clock(clock, row);
+    set_template_tx(tx, tx_index, row);
+    set_template_log(log, log_index, row);
+
+    row.set("order_hash", bytes_to_hex(&event.order_hash));
+}
+
+fn process_user_paused(
+    tables: &mut Tables,
+    clock: &Clock,
+    tx: &ctf_exchange::Transaction,
+    log: &ctf_exchange::Log,
+    tx_index: usize,
+    log_index: usize,
+    event: &ctf_exchange::UserPaused,
+) {
+    let key = log_key(clock, log.ordinal);
+    let row = tables.create_row("ctfexchange_user_paused", key);
+
+    set_clock(clock, row);
+    set_template_tx(tx, tx_index, row);
+    set_template_log(log, log_index, row);
+
+    row.set("user", bytes_to_hex(&event.user));
+    row.set("effective_pause_block", &event.effective_pause_block);
+}
+
+fn process_user_unpaused(
+    tables: &mut Tables,
+    clock: &Clock,
+    tx: &ctf_exchange::Transaction,
+    log: &ctf_exchange::Log,
+    tx_index: usize,
+    log_index: usize,
+    event: &ctf_exchange::UserUnpaused,
+) {
+    let key = log_key(clock, log.ordinal);
+    let row = tables.create_row("ctfexchange_user_unpaused", key);
+
+    set_clock(clock, row);
+    set_template_tx(tx, tx_index, row);
+    set_template_log(log, log_index, row);
+
+    row.set("user", bytes_to_hex(&event.user));
+}
+
+fn process_user_pause_block_interval_updated(
+    tables: &mut Tables,
+    clock: &Clock,
+    tx: &ctf_exchange::Transaction,
+    log: &ctf_exchange::Log,
+    tx_index: usize,
+    log_index: usize,
+    event: &ctf_exchange::UserPauseBlockIntervalUpdated,
+) {
+    let key = log_key(clock, log.ordinal);
+    let row = tables.create_row("ctfexchange_user_pause_block_interval_updated", key);
+
+    set_clock(clock, row);
+    set_template_tx(tx, tx_index, row);
+    set_template_log(log, log_index, row);
+
+    row.set("old_interval", &event.old_interval);
+    row.set("new_interval", &event.new_interval);
+}
+
+fn process_wrapped(
+    tables: &mut Tables,
+    clock: &Clock,
+    tx: &ctf_exchange::Transaction,
+    log: &ctf_exchange::Log,
+    tx_index: usize,
+    log_index: usize,
+    event: &ctf_exchange::Wrapped,
+) {
+    let key = log_key(clock, log.ordinal);
+    let row = tables.create_row("collateral_token_wrapped", key);
+
+    set_clock(clock, row);
+    set_template_tx(tx, tx_index, row);
+    set_template_log(log, log_index, row);
+
+    row.set("caller", bytes_to_hex(&event.caller));
+    row.set("asset", bytes_to_hex(&event.asset));
+    row.set("to_address", bytes_to_hex(&event.to));
+    row.set("amount", &event.amount);
+}
+
+fn process_unwrapped(
+    tables: &mut Tables,
+    clock: &Clock,
+    tx: &ctf_exchange::Transaction,
+    log: &ctf_exchange::Log,
+    tx_index: usize,
+    log_index: usize,
+    event: &ctf_exchange::Unwrapped,
+) {
+    let key = log_key(clock, log.ordinal);
+    let row = tables.create_row("collateral_token_unwrapped", key);
+
+    set_clock(clock, row);
+    set_template_tx(tx, tx_index, row);
+    set_template_log(log, log_index, row);
+
+    row.set("caller", bytes_to_hex(&event.caller));
+    row.set("asset", bytes_to_hex(&event.asset));
+    row.set("to_address", bytes_to_hex(&event.to));
+    row.set("amount", &event.amount);
+}
+
+fn legacy_asset_ids<'a>(
+    side: Option<u32>,
+    token_id: Option<&'a str>,
+    maker_asset_id: Option<&'a str>,
+    taker_asset_id: Option<&'a str>,
+) -> (String, String) {
+    if let (Some(side), Some(token_id)) = (side, token_id) {
+        if side == 0 {
+            return ("0".to_string(), token_id.to_string());
+        }
+        return (token_id.to_string(), "0".to_string());
+    }
+
+    (
+        maker_asset_id.unwrap_or("0").to_string(),
+        taker_asset_id.unwrap_or("0").to_string(),
+    )
 }

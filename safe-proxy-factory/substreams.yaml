@@ -29,5 +29,5 @@ modules:
 network: polygon
 
 params:
-  # Safe Factory
-  map_events: "evt_addr:0xaacfeea03eb1561c4e67d661e40682bd20e3541b"
+  # Gnosis Safe Factory + Polymarket Proxy Factory
+  map_events: "evt_addr:0xaacfeea03eb1561c4e67d661e40682bd20e3541b || evt_addr:0xab45c5a4b0c941a2f231c04c3f49182e1a254052"
