@@ -84,6 +84,9 @@ SELECT
     toUInt64(0) AS convert_count,
     count() AS transactions
 FROM conditionaltokens_position_split
+-- Drop non-canonical-decimals splits (e.g. 18-decimal WMATIC) that would inflate
+-- amount aggregates by 10^12. See pinax-network/token-api#489.
+WHERE amount < toUInt256('10000000000000000')
 GROUP BY
     interval_min,
     user, condition_id,
@@ -127,6 +130,8 @@ SELECT
     toUInt64(0) AS convert_count,
     count() AS transactions
 FROM conditionaltokens_positions_merge
+-- Drop non-canonical-decimals merges; see split MV above.
+WHERE amount < toUInt256('10000000000000000')
 GROUP BY
     interval_min,
     user, condition_id,
@@ -170,6 +175,8 @@ SELECT
     toUInt64(0) AS convert_count,
     count() AS transactions
 FROM conditionaltokens_payout_redemption
+-- Drop non-canonical-decimals redemptions; same rationale as the split MV.
+WHERE payout < toUInt256('10000000000000000')
 GROUP BY
     interval_min,
     user, condition_id,
