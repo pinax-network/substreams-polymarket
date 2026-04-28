@@ -1,9 +1,16 @@
 -- User Leaderboard --
--- Pre-computed user trading stats with PNL across lookback windows
--- Refreshed hourly via REFRESH materialized view
--- Reads from state_user_position (trade data) and state_latest_price (unrealized PNL)
+-- Pre-computed user trading stats with PNL across lookback windows.
+-- Refreshed hourly via APPEND-mode refresh MV.
+--
+-- The target uses ReplacingMergeTree(refresh_time) so the latest snapshot per
+-- (interval_min, user) wins after merges. CH refuses non-APPEND refresh MVs
+-- targeting Replicated tables on Atomic databases, so APPEND + Replacing is
+-- the working pattern; consumers must read with FINAL.
+--
+-- TTL bounds storage to ~3 hourly snapshots pre-merge.
 
 CREATE TABLE IF NOT EXISTS state_user (
+    refresh_time             DateTime('UTC'),
     interval_min             UInt32 COMMENT '0=all-time, 60=1h, 1440=1d, 10080=1w, 43200=30d',
     user                     String,
     buy_cost                 Float64,
@@ -16,11 +23,12 @@ CREATE TABLE IF NOT EXISTS state_user (
     total_pnl                Float64,
     first_trade              DateTime('UTC'),
     last_trade               DateTime('UTC')
-) ENGINE = MergeTree
-ORDER BY (interval_min, user);
+) ENGINE = ReplacingMergeTree(refresh_time)
+ORDER BY (interval_min, user)
+TTL refresh_time + INTERVAL 3 HOUR;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_refresh_state_user
-REFRESH EVERY 1 HOUR
+REFRESH EVERY 1 HOUR APPEND
 TO state_user
 AS
 WITH base AS (
@@ -60,4 +68,11 @@ WITH base AS (
     LEFT JOIN state_latest_price lp FINAL ON lp.asset_id = toString(agg.token_id)
     GROUP BY interval_min, agg.user
 )
-SELECT * FROM base;
+SELECT
+    now() AS refresh_time,
+    interval_min, user, buy_cost, sell_revenue,
+    buy_count, sell_count, transactions,
+    realized_pnl, unrealized_pnl, total_pnl,
+    first_trade, last_trade
+FROM base
+SETTINGS max_execution_time = 600;
