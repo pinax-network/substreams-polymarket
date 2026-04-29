@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "clickhouse",
+    "polymarket",
     "ctf-exchange",
     "common",
     "proto",

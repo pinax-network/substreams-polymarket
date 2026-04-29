@@ -105,19 +105,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
-name = "clickhouse"
-version = "0.0.0"
-dependencies = [
- "common",
- "prost 0.13.5",
- "prost-types 0.13.5",
- "proto",
- "substreams",
- "substreams-database-change",
- "substreams-ethereum",
-]
-
-[[package]]
 name = "common"
 version = "0.0.0"
 dependencies = [
@@ -666,6 +653,19 @@ checksum = "3672b37090dbd86368a4145bc067582552b29c27377cad4e0a306c97f9bd7772"
 dependencies = [
  "fixedbitset 0.5.7",
  "indexmap",
+]
+
+[[package]]
+name = "polymarket"
+version = "0.0.0"
+dependencies = [
+ "common",
+ "prost 0.13.5",
+ "prost-types 0.13.5",
+ "proto",
+ "substreams",
+ "substreams-database-change",
+ "substreams-ethereum",
 ]
 
 [[package]]
