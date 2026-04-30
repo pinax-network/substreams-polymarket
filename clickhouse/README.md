@@ -9,7 +9,7 @@ that package's `db_out` module with the local ClickHouse schema.
 | File | Value |
 | ---- | ----- |
 | Manifest | `clickhouse/substreams.yaml` |
-| Package | `polymarket_clickhouse` |
+| Package | `evm_clickhouse_polymarket` |
 | Module | `db_out` |
 | Schema | `clickhouse/schema.sql` |
 

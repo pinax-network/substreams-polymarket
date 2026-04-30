@@ -15,7 +15,7 @@ protobuf and one block pass:
 | ---- | ------- | ------ | ------- |
 | `./substreams.yaml` | `polymarket` | `map_events` | Emits decoded Polymarket events |
 | `./database-change/substreams.yaml` | `polymarket_database_change` | `db_out` | Emits database changes for SQL sinks |
-| `./clickhouse/substreams.yaml` | `polymarket_clickhouse` | `db_out` | ClickHouse sink package using the SQL schema |
+| `./clickhouse/substreams.yaml` | `evm_clickhouse_polymarket` | `db_out` | ClickHouse sink package using the SQL schema |
 
 ## Build
 

@@ -116,23 +116,38 @@ fn process_order_filled(
         event.maker_asset_id.as_deref(),
         event.taker_asset_id.as_deref(),
     );
-    row.set("maker_asset_id", maker_asset_id);
-    row.set("taker_asset_id", taker_asset_id);
-    if let Some(side) = event.side {
-        row.set("side", side);
-    }
-    if let Some(token_id) = &event.token_id {
-        row.set("token_id", token_id);
-    }
+    row.set("maker_asset_id", &maker_asset_id);
+    row.set("taker_asset_id", taker_asset_id.clone());
+    row.set(
+        "side",
+        event.side.unwrap_or_else(|| legacy_side(&maker_asset_id)),
+    );
+    row.set(
+        "token_id",
+        event
+            .token_id
+            .as_deref()
+            .unwrap_or_else(|| legacy_token_id(&maker_asset_id, &taker_asset_id)),
+    );
     row.set("maker_amount_filled", &event.maker_amount_filled);
     row.set("taker_amount_filled", &event.taker_amount_filled);
     row.set("fee", &event.fee);
-    if let Some(builder) = &event.builder {
-        row.set("builder", bytes_to_hex(builder));
-    }
-    if let Some(metadata) = &event.metadata {
-        row.set("metadata", bytes_to_hex(metadata));
-    }
+    row.set(
+        "builder",
+        event
+            .builder
+            .as_deref()
+            .map(bytes_to_hex)
+            .unwrap_or_default(),
+    );
+    row.set(
+        "metadata",
+        event
+            .metadata
+            .as_deref()
+            .map(bytes_to_hex)
+            .unwrap_or_default(),
+    );
 }
 
 fn process_fee_charged(
@@ -152,9 +167,7 @@ fn process_fee_charged(
     set_template_log(log, log_index, row);
 
     row.set("receiver", bytes_to_hex(&event.receiver));
-    if let Some(token_id) = &event.token_id {
-        row.set("token_id", token_id);
-    }
+    row.set("token_id", event.token_id.as_deref().unwrap_or("0"));
     row.set("amount", &event.amount);
 }
 
@@ -244,14 +257,19 @@ fn process_orders_matched(
         event.maker_asset_id.as_deref(),
         event.taker_asset_id.as_deref(),
     );
-    row.set("maker_asset_id", maker_asset_id);
-    row.set("taker_asset_id", taker_asset_id);
-    if let Some(side) = event.side {
-        row.set("side", side);
-    }
-    if let Some(token_id) = &event.token_id {
-        row.set("token_id", token_id);
-    }
+    row.set("maker_asset_id", &maker_asset_id);
+    row.set("taker_asset_id", taker_asset_id.clone());
+    row.set(
+        "side",
+        event.side.unwrap_or_else(|| legacy_side(&maker_asset_id)),
+    );
+    row.set(
+        "token_id",
+        event
+            .token_id
+            .as_deref()
+            .unwrap_or_else(|| legacy_token_id(&maker_asset_id, &taker_asset_id)),
+    );
     row.set("maker_amount_filled", &event.maker_amount_filled);
     row.set("taker_amount_filled", &event.taker_amount_filled);
 }
@@ -547,4 +565,20 @@ fn legacy_asset_ids<'a>(
         maker_asset_id.unwrap_or("0").to_string(),
         taker_asset_id.unwrap_or("0").to_string(),
     )
+}
+
+fn legacy_side(maker_asset_id: &str) -> u32 {
+    if maker_asset_id == "0" {
+        0
+    } else {
+        1
+    }
+}
+
+fn legacy_token_id<'a>(maker_asset_id: &'a str, taker_asset_id: &'a str) -> &'a str {
+    if maker_asset_id == "0" {
+        taker_asset_id
+    } else {
+        maker_asset_id
+    }
 }
