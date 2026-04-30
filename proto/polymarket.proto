@@ -1,0 +1,463 @@
+syntax = "proto3";
+
+package polymarket.v1;
+
+message Events { repeated Transaction transactions = 1; }
+
+message Transaction {
+  bytes hash = 1;
+  bytes from = 2;
+  optional bytes to = 3;
+  uint64 nonce = 5;
+  string gas_price = 6; // uint256
+  uint64 gas_limit = 7;
+  uint64 gas_used = 8;
+  string value = 9; // uint256
+  repeated Log logs = 10;
+}
+
+message Log {
+  bytes address = 1;
+  uint64 ordinal = 2;
+  repeated bytes topics = 3;
+  bytes data = 4;
+  oneof log {
+    // CtfExchange events
+    CtfExchangeFeeCharged ctf_exchange_fee_charged = 10;
+    CtfExchangeNewAdmin ctf_exchange_new_admin = 11;
+    CtfExchangeNewOperator ctf_exchange_new_operator = 12;
+    CtfExchangeOrderCancelled ctf_exchange_order_cancelled = 13;
+    CtfExchangeOrderFilled ctf_exchange_order_filled = 14;
+    CtfExchangeOrdersMatched ctf_exchange_orders_matched = 15;
+    CtfExchangeProxyFactoryUpdated ctf_exchange_proxy_factory_updated = 16;
+    CtfExchangeRemovedAdmin ctf_exchange_removed_admin = 17;
+    CtfExchangeRemovedOperator ctf_exchange_removed_operator = 18;
+    CtfExchangeSafeFactoryUpdated ctf_exchange_safe_factory_updated = 19;
+    CtfExchangeTokenRegistered ctf_exchange_token_registered = 20;
+    CtfExchangeTradingPaused ctf_exchange_trading_paused = 21;
+    CtfExchangeTradingUnpaused ctf_exchange_trading_unpaused = 22;
+    CtfExchangeFeeReceiverUpdated ctf_exchange_fee_receiver_updated = 23;
+    CtfExchangeMaxFeeRateUpdated ctf_exchange_max_fee_rate_updated = 24;
+    CtfExchangeOrderPreapproved ctf_exchange_order_preapproved = 25;
+    CtfExchangeOrderPreapprovalInvalidated ctf_exchange_order_preapproval_invalidated = 26;
+    CtfExchangeUserPaused ctf_exchange_user_paused = 27;
+    CtfExchangeUserUnpaused ctf_exchange_user_unpaused = 28;
+    CtfExchangeUserPauseBlockIntervalUpdated ctf_exchange_user_pause_block_interval_updated = 29;
+    // CollateralToken events
+    CollateralTokenWrapped collateral_token_wrapped = 30;
+    CollateralTokenUnwrapped collateral_token_unwrapped = 31;
+    // ConditionalTokens events
+    ConditionalTokensConditionPreparation conditional_tokens_condition_preparation = 32;
+    ConditionalTokensConditionResolution conditional_tokens_condition_resolution = 33;
+    ConditionalTokensPositionSplit conditional_tokens_position_split = 34;
+    ConditionalTokensPositionsMerge conditional_tokens_positions_merge = 35;
+    ConditionalTokensPayoutRedemption conditional_tokens_payout_redemption = 36;
+    // FeeModule events
+    FeeModuleFeeRefunded fee_module_fee_refunded = 37;
+    FeeModuleFeeWithdrawn fee_module_fee_withdrawn = 38;
+    FeeModuleNewAdmin fee_module_new_admin = 39;
+    FeeModuleRemovedAdmin fee_module_removed_admin = 40;
+    // NegRiskAdapter events
+    NegRiskAdapterMarketPrepared negrisk_adapter_market_prepared = 41;
+    NegRiskAdapterNewAdmin negrisk_adapter_new_admin = 42;
+    NegRiskAdapterOutcomeReported negrisk_adapter_outcome_reported = 43;
+    NegRiskAdapterPayoutRedemption negrisk_adapter_payout_redemption = 44;
+    NegRiskAdapterPositionSplit negrisk_adapter_position_split = 45;
+    NegRiskAdapterPositionsConverted negrisk_adapter_positions_converted = 46;
+    NegRiskAdapterPositionsMerge negrisk_adapter_positions_merge = 47;
+    NegRiskAdapterQuestionPrepared negrisk_adapter_question_prepared = 48;
+    NegRiskAdapterRemovedAdmin negrisk_adapter_removed_admin = 49;
+    // SafeProxyFactory events
+    SafeProxyFactoryProxyCreation safe_proxy_factory_proxy_creation = 50;
+    SafeProxyFactoryProxyCreationL2 safe_proxy_factory_proxy_creation_l2 = 51;
+    SafeProxyFactoryChainSpecificProxyCreationL2 safe_proxy_factory_chain_specific_proxy_creation_l2 = 52;
+    // UmaCtfAdapter events
+    UmaCtfAdapterAncillaryDataUpdated uma_ctf_adapter_ancillary_data_updated = 53;
+    UmaCtfAdapterNewAdmin uma_ctf_adapter_new_admin = 54;
+    UmaCtfAdapterQuestionEmergencyResolved uma_ctf_adapter_question_emergency_resolved = 55;
+    UmaCtfAdapterQuestionFlagged uma_ctf_adapter_question_flagged = 56;
+    UmaCtfAdapterQuestionInitialized uma_ctf_adapter_question_initialized = 57;
+    UmaCtfAdapterQuestionPaused uma_ctf_adapter_question_paused = 58;
+    UmaCtfAdapterQuestionReset uma_ctf_adapter_question_reset = 59;
+    UmaCtfAdapterQuestionResolved uma_ctf_adapter_question_resolved = 60;
+    UmaCtfAdapterQuestionUnpaused uma_ctf_adapter_question_unpaused = 61;
+    UmaCtfAdapterRemovedAdmin uma_ctf_adapter_removed_admin = 62;
+    UmaCtfAdapterQuestionUnflagged uma_ctf_adapter_question_unflagged = 63;
+  }
+}
+
+// CtfExchange
+// https://github.com/pinax-network/substreams-abis/blob/main/abi/evm/polymarket/CFTExchange.json
+message CtfExchangeFeeCharged {
+  bytes receiver = 1; // address
+  optional string token_id = 2; // uint256 (V1 only)
+  string amount = 3; // uint256
+}
+
+message CtfExchangeNewAdmin {
+  bytes new_admin_address = 1; // address
+  bytes admin = 2; // address
+}
+
+message CtfExchangeNewOperator {
+  bytes new_operator_address = 1; // address
+  bytes admin = 2; // address
+}
+
+message CtfExchangeOrderCancelled {
+  bytes order_hash = 1; // bytes32
+}
+
+message CtfExchangeOrderFilled {
+  bytes order_hash = 1; // bytes32
+  bytes maker = 2; // address
+  bytes taker = 3; // address
+  optional string maker_asset_id = 4; // uint256 (V1 only)
+  optional string taker_asset_id = 5; // uint256 (V1 only)
+  string maker_amount_filled = 6; // uint256
+  string taker_amount_filled = 7; // uint256
+  string fee = 8; // uint256
+  optional uint32 side = 9; // uint8 (V2 only)
+  optional string token_id = 10; // uint256 (V2 only)
+  optional bytes builder = 11; // bytes32 (V2 only)
+  optional bytes metadata = 12; // bytes32 (V2 only)
+}
+
+message CtfExchangeOrdersMatched {
+  bytes taker_order_hash = 1; // bytes32
+  bytes taker_order_maker = 2; // address
+  optional string maker_asset_id = 3; // uint256 (V1 only)
+  optional string taker_asset_id = 4; // uint256 (V1 only)
+  string maker_amount_filled = 5; // uint256
+  string taker_amount_filled = 6; // uint256
+  optional uint32 side = 7; // uint8 (V2 only)
+  optional string token_id = 8; // uint256 (V2 only)
+}
+
+message CtfExchangeProxyFactoryUpdated {
+  bytes old_proxy_factory = 1; // address
+  bytes new_proxy_factory = 2; // address
+}
+
+message CtfExchangeRemovedAdmin {
+  bytes removed_admin = 1; // address
+  bytes admin = 2; // address
+}
+
+message CtfExchangeRemovedOperator {
+  bytes removed_operator = 1; // address
+  bytes admin = 2; // address
+}
+
+message CtfExchangeSafeFactoryUpdated {
+  bytes old_safe_factory = 1; // address
+  bytes new_safe_factory = 2; // address
+}
+
+// key = <bytes32 conditionId>
+message CtfExchangeTokenRegistered {
+  // STORE primary key
+  bytes condition_id = 1; // bytes32
+  string token0 = 2; // uint256
+  string token1 = 3; // uint256
+}
+
+// StoreToken - minimal token storage type
+// Primary key: conditionId
+message CtfExchangeTradingPaused {
+  bytes pauser = 1; // address
+}
+
+message CtfExchangeTradingUnpaused {
+  bytes pauser = 1; // address
+}
+
+message CtfExchangeFeeReceiverUpdated {
+  bytes fee_receiver = 1; // address
+}
+
+message CtfExchangeMaxFeeRateUpdated {
+  string max_fee_rate = 1; // uint256
+}
+
+message CtfExchangeOrderPreapproved {
+  bytes order_hash = 1; // bytes32
+}
+
+message CtfExchangeOrderPreapprovalInvalidated {
+  bytes order_hash = 1; // bytes32
+}
+
+message CtfExchangeUserPaused {
+  bytes user = 1; // address
+  string effective_pause_block = 2; // uint256
+}
+
+message CtfExchangeUserUnpaused {
+  bytes user = 1; // address
+}
+
+message CtfExchangeUserPauseBlockIntervalUpdated {
+  string old_interval = 1; // uint256
+  string new_interval = 2; // uint256
+}
+
+message CollateralTokenWrapped {
+  bytes caller = 1; // address
+  bytes asset = 2; // address
+  bytes to = 3; // address
+  string amount = 4; // uint256
+}
+
+message CollateralTokenUnwrapped {
+  bytes caller = 1; // address
+  bytes asset = 2; // address
+  bytes to = 3; // address
+  string amount = 4; // uint256
+}
+
+// ConditionalTokens
+// ConditionalTokens events (excluding ERC1155 standard events)
+// https://github.com/gnosis/conditional-tokens-contracts
+// ConditionPreparation event
+// Emitted upon the successful preparation of a condition
+message ConditionalTokensConditionPreparation {
+  bytes condition_id = 1; // bytes32
+  bytes oracle = 2; // address
+  bytes question_id = 3; // bytes32
+  string outcome_slot_count = 4; // uint256
+}
+
+// ConditionResolution event
+// Emitted when a condition is resolved
+message ConditionalTokensConditionResolution {
+  bytes condition_id = 1; // bytes32
+  bytes oracle = 2; // address
+  bytes question_id = 3; // bytes32
+  string outcome_slot_count = 4; // uint256
+  repeated string payout_numerators = 5; // uint256[]
+}
+
+// PositionSplit event
+// Emitted when a position is successfully split
+message ConditionalTokensPositionSplit {
+  bytes stakeholder = 1; // address
+  bytes collateral_token = 2; // address
+  bytes parent_collection_id = 3; // bytes32
+  bytes condition_id = 4; // bytes32
+  repeated string partition = 5; // uint256[]
+  string amount = 6; // uint256
+}
+
+// PositionsMerge event
+// Emitted when positions are successfully merged
+message ConditionalTokensPositionsMerge {
+  bytes stakeholder = 1; // address
+  bytes collateral_token = 2; // address
+  bytes parent_collection_id = 3; // bytes32
+  bytes condition_id = 4; // bytes32
+  repeated string partition = 5; // uint256[]
+  string amount = 6; // uint256
+}
+
+// PayoutRedemption event
+// Emitted when payout is redeemed
+message ConditionalTokensPayoutRedemption {
+  bytes redeemer = 1; // address
+  bytes collateral_token = 2; // address
+  bytes parent_collection_id = 3; // bytes32
+  bytes condition_id = 4; // bytes32
+  repeated string index_sets = 5; // uint256[]
+  string payout = 6; // uint256
+}
+
+// FeeModule
+// FeeModule events
+// FeeRefunded event
+message FeeModuleFeeRefunded {
+  bytes order_hash = 1; // bytes32
+  bytes to = 2; // address
+  string id = 3; // uint256
+  string refund = 4; // uint256
+  string fee_charged = 5; // uint256
+}
+
+// FeeWithdrawn event
+message FeeModuleFeeWithdrawn {
+  bytes token = 1; // address
+  bytes to = 2; // address
+  string id = 3; // uint256
+  string amount = 4; // uint256
+}
+
+// NewAdmin event
+message FeeModuleNewAdmin {
+  bytes admin = 1; // address
+  bytes new_admin_address = 2; // address
+}
+
+// RemovedAdmin event
+message FeeModuleRemovedAdmin {
+  bytes admin = 1; // address
+  bytes removed_admin = 2; // address
+}
+
+// NegRiskAdapter
+// NegRiskAdapter events
+// MarketPrepared event
+message NegRiskAdapterMarketPrepared {
+  bytes market_id = 1; // bytes32
+  bytes oracle = 2; // address
+  string fee_bips = 3; // uint256
+  bytes data = 4; // bytes
+}
+
+// NewAdmin event
+message NegRiskAdapterNewAdmin {
+  bytes admin = 1; // address
+  bytes new_admin_address = 2; // address
+}
+
+// OutcomeReported event
+message NegRiskAdapterOutcomeReported {
+  bytes market_id = 1; // bytes32
+  bytes question_id = 2; // bytes32
+  bool outcome = 3; // bool
+}
+
+// PayoutRedemption event
+message NegRiskAdapterPayoutRedemption {
+  bytes redeemer = 1; // address
+  bytes condition_id = 2; // bytes32
+  repeated string amounts = 3; // uint256[]
+  string payout = 4; // uint256
+}
+
+// PositionSplit event
+message NegRiskAdapterPositionSplit {
+  bytes stakeholder = 1; // address
+  bytes condition_id = 2; // bytes32
+  string amount = 3; // uint256
+}
+
+// PositionsConverted event
+message NegRiskAdapterPositionsConverted {
+  bytes stakeholder = 1; // address
+  bytes market_id = 2; // bytes32
+  string index_set = 3; // uint256
+  string amount = 4; // uint256
+}
+
+// PositionsMerge event
+message NegRiskAdapterPositionsMerge {
+  bytes stakeholder = 1; // address
+  bytes condition_id = 2; // bytes32
+  string amount = 3; // uint256
+}
+
+// QuestionPrepared event
+message NegRiskAdapterQuestionPrepared {
+  bytes market_id = 1; // bytes32
+  bytes question_id = 2; // bytes32
+  string index = 3; // uint256
+  bytes data = 4; // bytes
+}
+
+// RemovedAdmin event
+message NegRiskAdapterRemovedAdmin {
+  bytes admin = 1; // address
+  bytes removed_admin = 2; // address
+}
+
+// SafeProxyFactory
+// https://github.com/safe-global/safe-contracts/blob/main/contracts/proxies/SafeProxyFactory.sol
+message SafeProxyFactoryProxyCreation {
+  bytes proxy = 10; // address
+  bytes singleton = 11; // address
+}
+
+message SafeProxyFactoryProxyCreationL2 {
+  bytes proxy = 10; // address
+  bytes singleton = 11; // address
+  bytes initializer = 12; // bytes
+  string salt_nonce = 13; // uint256
+}
+
+message SafeProxyFactoryChainSpecificProxyCreationL2 {
+  bytes proxy = 10; // address
+  bytes singleton = 11; // address
+  bytes initializer = 12; // bytes
+  string salt_nonce = 13; // uint256
+  string chain_id = 14; // uint256
+}
+
+// UmaCtfAdapter
+// UmaCtfAdapter events (V2 & V3 combined)
+// AncillaryDataUpdated event
+message UmaCtfAdapterAncillaryDataUpdated {
+  bytes question_id = 1; // bytes32
+  bytes owner = 2; // address
+  bytes update = 3; // bytes
+}
+
+// NewAdmin event
+message UmaCtfAdapterNewAdmin {
+  bytes admin = 1; // address
+  bytes new_admin_address = 2; // address
+}
+
+// QuestionEmergencyResolved event
+message UmaCtfAdapterQuestionEmergencyResolved {
+  bytes question_id = 1; // bytes32
+  repeated string payouts = 2; // uint256[]
+}
+
+// QuestionFlagged event
+message UmaCtfAdapterQuestionFlagged {
+  bytes question_id = 1; // bytes32
+}
+
+// QuestionInitialized event
+message UmaCtfAdapterQuestionInitialized {
+  bytes question_id = 1; // bytes32
+  string request_timestamp = 2; // uint256
+  bytes creator = 3; // address
+  bytes ancillary_data = 4; // bytes
+  bytes reward_token = 5; // address
+  string reward = 6; // uint256
+  string proposal_bond = 7; // uint256
+}
+
+// QuestionPaused event
+message UmaCtfAdapterQuestionPaused {
+  bytes question_id = 1; // bytes32
+}
+
+// QuestionReset event
+message UmaCtfAdapterQuestionReset {
+  bytes question_id = 1; // bytes32
+}
+
+// QuestionResolved event
+message UmaCtfAdapterQuestionResolved {
+  bytes question_id = 1; // bytes32
+  string settled_price = 2; // int256
+  repeated string payouts = 3; // uint256[]
+}
+
+// QuestionUnpaused event
+message UmaCtfAdapterQuestionUnpaused {
+  bytes question_id = 1; // bytes32
+}
+
+// RemovedAdmin event
+message UmaCtfAdapterRemovedAdmin {
+  bytes admin = 1; // address
+  bytes removed_admin = 2; // address
+}
+
+// QuestionUnflagged event (V3 only)
+message UmaCtfAdapterQuestionUnflagged {
+  bytes question_id = 1; // bytes32
+}
+

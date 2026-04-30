@@ -1,14 +1,14 @@
 specVersion: v0.1.0
 package:
-  name: clickhouse_polymarket
-  version: v0.2.0
+  name: evm_clickhouse_polymarket
+  version: v0.3.0
   url: https://github.com/pinax-network/substreams-polymarket
-  description: Polymarket - ClickHouse sink for Polygon market data
+  description: Polymarket - ClickHouse
   image: ../image.png
 
 imports:
   sql: ../spkg/substreams-sink-sql-protodefs-v1.0.7.spkg
-  db: ../spkg/polymarket-v0.2.0.spkg
+  db: ../spkg/polymarket-database-change-v0.3.0.spkg
 
 modules:
   - name: db_out

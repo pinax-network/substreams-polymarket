@@ -105,26 +105,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
-name = "common"
-version = "0.0.0"
-dependencies = [
- "proto",
- "substreams",
- "substreams-ethereum",
-]
-
-[[package]]
-name = "conditional-tokens"
-version = "0.0.0"
-dependencies = [
- "common",
- "proto",
- "substreams",
- "substreams-abis",
- "substreams-ethereum",
-]
-
-[[package]]
 name = "const_format"
 version = "0.2.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -170,14 +150,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "ctf-exchange"
+name = "database-change"
 version = "0.0.0"
 dependencies = [
- "common",
- "proto",
+ "polymarket",
  "substreams",
- "substreams-abis",
- "substreams-ethereum",
+ "substreams-database-change",
 ]
 
 [[package]]
@@ -261,17 +239,6 @@ name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
-
-[[package]]
-name = "fee-module"
-version = "0.0.0"
-dependencies = [
- "common",
- "proto",
- "substreams",
- "substreams-abis",
- "substreams-ethereum",
-]
 
 [[package]]
 name = "fixed-hash"
@@ -511,17 +478,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
 
 [[package]]
-name = "negrisk-adapter"
-version = "0.0.0"
-dependencies = [
- "common",
- "proto",
- "substreams",
- "substreams-abis",
- "substreams-ethereum",
-]
-
-[[package]]
 name = "num-bigint"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -659,12 +615,10 @@ dependencies = [
 name = "polymarket"
 version = "0.0.0"
 dependencies = [
- "common",
  "prost 0.13.5",
  "prost-types 0.13.5",
- "proto",
  "substreams",
- "substreams-database-change",
+ "substreams-abis",
  "substreams-ethereum",
 ]
 
@@ -835,14 +789,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "proto"
-version = "0.0.0"
-dependencies = [
- "prost 0.13.5",
- "prost-types 0.13.5",
-]
-
-[[package]]
 name = "quote"
 version = "1.0.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -971,17 +917,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
-name = "safe-proxy-factory"
-version = "0.0.0"
-dependencies = [
- "common",
- "proto",
- "substreams",
- "substreams-abis",
- "substreams-ethereum",
-]
-
-[[package]]
 name = "serde"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1087,9 +1022,9 @@ dependencies = [
 
 [[package]]
 name = "substreams-database-change"
-version = "3.0.0"
+version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19d3b7d3a19152bde02a29e864a8fc07865bec304356a757c1006a61904a42a5"
+checksum = "895bc4163afc8b3599aba8416500ac5ea392df2f0f09b9e955332b3779cf80a9"
 dependencies = [
  "prost 0.13.5",
  "prost-types 0.13.5",
@@ -1293,17 +1228,6 @@ dependencies = [
  "crunchy",
  "hex",
  "static_assertions",
-]
-
-[[package]]
-name = "uma-ctf-adapter"
-version = "0.0.0"
-dependencies = [
- "common",
- "proto",
- "substreams",
- "substreams-abis",
- "substreams-ethereum",
 ]
 
 [[package]]

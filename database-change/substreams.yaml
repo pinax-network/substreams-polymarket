@@ -1,0 +1,27 @@
+specVersion: v0.1.0
+package:
+  name: polymarket_database_change
+  version: v0.3.0
+  url: https://github.com/pinax-network/substreams-polymarket
+  description: Polymarket - Database Changes
+  image: ../image.png
+
+imports:
+  database_changes: ../spkg/substreams-database-change-v2.0.0.spkg
+  events: ../spkg/polymarket-v0.3.0.spkg
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ../target/wasm32-unknown-unknown/release/database_change.wasm
+
+modules:
+  - name: db_out
+    kind: map
+    inputs:
+      - source: sf.substreams.v1.Clock
+      - map: events:map_events
+    output:
+      type: proto:sf.substreams.sink.database.v1.DatabaseChanges
+
+network: polygon

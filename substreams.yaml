@@ -1,0 +1,32 @@
+specVersion: v0.1.0
+package:
+  name: polymarket
+  version: v0.3.0
+  url: https://github.com/pinax-network/substreams-polymarket
+  description: Polymarket Events
+  image: ./image.png
+
+protobuf:
+  files:
+    - polymarket.proto
+  importPaths:
+    - ./proto
+  excludePaths:
+    - sf/substreams
+    - google
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ./target/wasm32-unknown-unknown/release/polymarket.wasm
+
+modules:
+  - name: map_events
+    kind: map
+    initialBlock: 4027499
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:polymarket.v1.Events
+
+network: polygon
