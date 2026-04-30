@@ -1,5 +1,5 @@
 ENDPOINT ?= polygon.substreams.pinax.network:443
-START_BLOCK ?= -1000
+START_BLOCK ?= 0
 STOP_BLOCK ?= 0
 PARALLEL_JOBS ?= 500
 .DEFAULT_GOAL := pack
@@ -18,7 +18,7 @@ pack: build
 
 .PHONY: noop
 noop: build
-	substreams-sink-noop $(ENDPOINT) substreams.yaml map_events -H "X-Substreams-Parallel-Workers: $(PARALLEL_JOBS)" $(START_BLOCK):
+	substreams-sink-noop $(ENDPOINT) substreams.yaml map_events -H "X-Substreams-Parallel-Workers: $(PARALLEL_JOBS)" 4027499:
 
 .PHONY: gui
 gui: build

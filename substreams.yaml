@@ -23,6 +23,7 @@ binaries:
 modules:
   - name: map_events
     kind: map
+    initialBlock: 4027499
     inputs:
       - params: string
       - source: sf.ethereum.type.v2.Block
