@@ -43,8 +43,9 @@ message Log {
     CtfExchangeUserPaused ctf_exchange_user_paused = 27;
     CtfExchangeUserUnpaused ctf_exchange_user_unpaused = 28;
     CtfExchangeUserPauseBlockIntervalUpdated ctf_exchange_user_pause_block_interval_updated = 29;
-    CtfExchangeWrapped ctf_exchange_wrapped = 30;
-    CtfExchangeUnwrapped ctf_exchange_unwrapped = 31;
+    // CollateralToken events
+    CollateralTokenWrapped collateral_token_wrapped = 30;
+    CollateralTokenUnwrapped collateral_token_unwrapped = 31;
     // ConditionalTokens events
     ConditionalTokensConditionPreparation conditional_tokens_condition_preparation = 32;
     ConditionalTokensConditionResolution conditional_tokens_condition_resolution = 33;
@@ -201,14 +202,14 @@ message CtfExchangeUserPauseBlockIntervalUpdated {
   string new_interval = 2; // uint256
 }
 
-message CtfExchangeWrapped {
+message CollateralTokenWrapped {
   bytes caller = 1; // address
   bytes asset = 2; // address
   bytes to = 3; // address
   string amount = 4; // uint256
 }
 
-message CtfExchangeUnwrapped {
+message CollateralTokenUnwrapped {
   bytes caller = 1; // address
   bytes asset = 2; // address
   bytes to = 3; // address

@@ -245,26 +245,6 @@ pub fn parse_log(log: &Log) -> Result<Option<pb::log::Log>, substreams::errors::
         return Ok(Some(event));
     }
 
-    if let Some(event) = v2::collateraltoken::events::Wrapped::match_and_decode(log) {
-        let event = pb::log::Log::CtfExchangeWrapped(pb::CtfExchangeWrapped {
-            caller: event.caller.to_vec(),
-            asset: event.asset.to_vec(),
-            to: event.to.to_vec(),
-            amount: event.amount.to_string(),
-        });
-        return Ok(Some(event));
-    }
-
-    if let Some(event) = v2::collateraltoken::events::Unwrapped::match_and_decode(log) {
-        let event = pb::log::Log::CtfExchangeUnwrapped(pb::CtfExchangeUnwrapped {
-            caller: event.caller.to_vec(),
-            asset: event.asset.to_vec(),
-            to: event.to.to_vec(),
-            amount: event.amount.to_string(),
-        });
-        return Ok(Some(event));
-    }
-
     Ok(None)
 }
 

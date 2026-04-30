@@ -1,6 +1,7 @@
 pub mod common;
 pub mod pb;
 
+mod collateral_token;
 mod conditional_tokens;
 mod ctf_exchange;
 mod fee_module;
@@ -29,6 +30,8 @@ pub fn map_events(
 
             let event = if matches_any(&address, CTF_EXCHANGE_ADDRESSES) {
                 ctf_exchange::parse_log(log)?
+            } else if matches_any(&address, COLLATERAL_TOKEN_ADDRESSES) {
+                collateral_token::parse_log(log)?
             } else if matches_any(&address, UMA_CTF_ADAPTER_ADDRESSES) {
                 uma_ctf_adapter::parse_log(log)?
             } else if matches_any(&address, NEGRISK_ADAPTER_ADDRESSES) {
@@ -39,6 +42,8 @@ pub fn map_events(
                 safe_proxy_factory::parse_log(log)?
             } else if matches_any(&address, FEE_MODULE_ADDRESSES) {
                 fee_module::parse_log(log)?
+            } else if matches_any(&address, COLLATERAL_CONTRACT_ADDRESSES) {
+                None
             } else {
                 None
             };
@@ -70,8 +75,14 @@ const CTF_EXCHANGE_ADDRESSES: &[&str] = &[
     "0xc5d563a36ae78145c45a50134d48a1215220f80a",
     "0xe111180000d2663c0091e4f400237545b87b996b",
     "0xe2222d279d744050d28e00520010520000310f59",
+];
+
+const COLLATERAL_TOKEN_ADDRESSES: &[&str] = &[
     "0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb",
     "0x6bbcef9f7ef3b6c592c99e0f206a0de94ad0925f",
+];
+
+const COLLATERAL_CONTRACT_ADDRESSES: &[&str] = &[
     "0x93070a847efef7f70739046a929d47a521f5b8ee",
     "0x2957922eb93258b93368531d39facca3b4dc5854",
     "0xebc2459ec962869ca4c0bd1e06368272732bcb08",

@@ -1,3 +1,4 @@
+mod collateral_token;
 mod common;
 mod conditional_tokens;
 mod ctf_exchange;
@@ -20,6 +21,7 @@ pub fn db_out(
     let mut tables = substreams_database_change::tables::Tables::new();
 
     ctf_exchange::process_events(&mut tables, &clock, &events);
+    collateral_token::process_events(&mut tables, &clock, &events);
     uma_ctf_adapter::process_events(&mut tables, &clock, &events);
     negrisk_adapter::process_events(&mut tables, &clock, &events);
     conditional_tokens::process_events(&mut tables, &clock, &events);

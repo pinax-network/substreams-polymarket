@@ -90,10 +90,11 @@ pub mod log {
         CtfExchangeUserUnpaused(super::CtfExchangeUserUnpaused),
         #[prost(message, tag="29")]
         CtfExchangeUserPauseBlockIntervalUpdated(super::CtfExchangeUserPauseBlockIntervalUpdated),
+        /// CollateralToken events
         #[prost(message, tag="30")]
-        CtfExchangeWrapped(super::CtfExchangeWrapped),
+        CollateralTokenWrapped(super::CollateralTokenWrapped),
         #[prost(message, tag="31")]
-        CtfExchangeUnwrapped(super::CtfExchangeUnwrapped),
+        CollateralTokenUnwrapped(super::CollateralTokenUnwrapped),
         /// ConditionalTokens events
         #[prost(message, tag="32")]
         ConditionalTokensConditionPreparation(super::ConditionalTokensConditionPreparation),
@@ -404,7 +405,7 @@ pub struct CtfExchangeUserPauseBlockIntervalUpdated {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CtfExchangeWrapped {
+pub struct CollateralTokenWrapped {
     /// address
     #[prost(bytes="vec", tag="1")]
     pub caller: ::prost::alloc::vec::Vec<u8>,
@@ -420,7 +421,7 @@ pub struct CtfExchangeWrapped {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CtfExchangeUnwrapped {
+pub struct CollateralTokenUnwrapped {
     /// address
     #[prost(bytes="vec", tag="1")]
     pub caller: ::prost::alloc::vec::Vec<u8>,
