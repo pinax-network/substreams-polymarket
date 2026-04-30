@@ -6,11 +6,11 @@ PARALLEL_JOBS ?= 500
 
 .PHONY: build
 build:
-	$(MAKE) -C ../polymarket build
+	$(MAKE) -C .. build
 
 .PHONY: pack
 pack:
-	$(MAKE) -C ../polymarket pack
+	$(MAKE) -C .. pack
 	substreams pack -o ../spkg/{spkgDefaultName}
 
 .PHONY: noop
