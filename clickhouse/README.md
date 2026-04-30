@@ -1,57 +1,68 @@
-# Clickhouse Polymarket
+# Polymarket ClickHouse
 
-This directory contains the ClickHouse schema for ingesting Polymarket event data from Substreams.
+ClickHouse sink package for Polymarket. This package does not decode chain data
+itself; it imports `../spkg/polymarket-database-change-v0.3.0.spkg` and exposes
+that package's `db_out` module with the local ClickHouse schema.
 
-## Schema Structure
+## Package
 
-The schema is organized into layers, with numbered prefixes indicating the dependency order:
+| File | Value |
+| ---- | ----- |
+| Manifest | `clickhouse/substreams.yaml` |
+| Package | `polymarket_clickhouse` |
+| Module | `db_out` |
+| Schema | `clickhouse/schema.sql` |
 
-### Layer 0: Foundation (`schema.0.*`)
+## Build And Setup
 
-- **`schema.0.blocks.sql`** - Block metadata table
-- **`schema.0.templates.sql`** - Template tables for transactions and logs that other tables inherit from
+```bash
+make -C clickhouse pack
+make -C clickhouse setup
+```
 
-### Layer 1: Event Tables (`schema.1.*`)
+`make -C clickhouse pack` builds and packs the upstream `database-change`
+package first, then packs this sink into `../spkg`.
 
-Event-specific tables that extend the template tables:
+`make -C clickhouse setup` runs `substreams-sink-sql setup` against the default
+local ClickHouse connection:
 
-- **`schema.1.conditional_tokens.sql`** - ConditionalTokens contract events (ConditionPreparation, ConditionResolution, PositionSplit, PositionsMerge, PayoutRedemption)
-- **`schema.1.ctf_exchange.sql`** - CTFExchange contract events (OrderFilled, OrdersMatched, FeeCharged, etc.)
-- **`schema.1.fee_module.sql`** - FeeModule contract events
-- **`schema.1.negrisk_adapter.sql`** - NegRiskAdapter contract events
-- **`schema.1.safe_proxy_factory.sql`** - SafeProxyFactory contract events
-- **`schema.1.uma_ctf_adapter.sql`** - UmaCtfAdapter contract events
+```text
+clickhouse://default:@localhost:9000/default
+```
 
-### Layer 2: Materialized Views (`schema.2.mv.*`)
+## Schema Layout
 
-AggregatingMergeTree tables with materialized views for real-time aggregation:
+The schema files are ordered by dependency:
 
-- **`schema.2.mv.state_open_interest.sql`** - Open interest aggregated by condition and time interval
-- **`schema.2.mv.state_orderbook.sql`** - Order book metrics aggregated by asset and time interval
-- **`schema.2.mv.state_user_condition_position.sql`** - User positions by condition (from splits/merges/redemptions)
-- **`schema.2.mv.state_user_position.sql`** - User positions by token (from exchange trades)
+- `schema.0.*`: block and shared transaction/log templates.
+- `schema.1.*`: raw event tables for each decoded contract group.
+- `schema.2.mv.*`: first-level aggregate states.
+- `schema.3.mv.*`: derived aggregate states.
+- `schema.4.view.*`: query-facing views.
 
-### Layer 3: Views (`schema.3.view.*`)
+## Raw Event Coverage
 
-Convenience views that query the aggregated state tables:
+Raw tables exist for:
 
-- **`schema.3.view.open_interest.sql`** - Open interest views (per-condition and global)
-- **`schema.3.view.orderbook.sql`** - Order book views (per-asset and global)
-- **`schema.3.view.user_condition_position.sql`** - User condition position views
-- **`schema.3.view.user_position.sql`** - User position views with PNL calculations
+- `collateral_token`
+- `conditional_tokens`
+- `ctf_exchange`
+- `fee_module`
+- `negrisk_adapter`
+- `safe_proxy_factory`
+- `uma_ctf_adapter`
 
-## Time Intervals
+## Aggregates And Views
 
-The materialized views aggregate data at multiple time intervals:
-- 1 minute (1m)
-- 5 minutes (5m)
-- 10 minutes (10m)
-- 30 minutes (30m)
-- 1 hour (60m)
-- 4 hours (240m)
-- 1 day (1440m)
-- 1 week (10080m)
+The schema currently derives ClickHouse state for:
 
-## USDC Decimals
-
-USDC has 6 decimals. The views provide both raw amounts (in base units) and scaled amounts (divided by 10^6) for convenience.
+- collateral flow
+- fees
+- latest price
+- market position
+- open interest
+- order book
+- platform totals
+- user activity
+- user condition positions
+- user token positions
