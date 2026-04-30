@@ -8,7 +8,7 @@ package:
 
 imports:
   sql: ../spkg/substreams-sink-sql-protodefs-v1.0.7.spkg
-  db: ../spkg/database-change-v0.3.0.spkg
+  db: ../spkg/polymarket-database-change-v0.3.0.spkg
 
 modules:
   - name: db_out

@@ -11,4 +11,4 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 polymarket = { path = ".." }
 substreams = "0.7.6"
-substreams-database-change = "3.0.0"
+substreams-database-change = "4.0.0"
