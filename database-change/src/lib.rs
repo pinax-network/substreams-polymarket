@@ -11,7 +11,7 @@ mod uma_ctf_adapter;
 
 use substreams::errors::Error;
 use substreams::pb::substreams::Clock;
-use substreams_database_change::pb::database::DatabaseChanges;
+use substreams_database_change::pb::sf::substreams::sink::database::v1::DatabaseChanges;
 
 #[substreams::handlers::map]
 pub fn db_out(
