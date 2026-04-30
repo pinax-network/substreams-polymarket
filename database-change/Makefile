@@ -1,7 +1,7 @@
 ENDPOINT ?= polygon.substreams.pinax.network:443
-START_BLOCK ?= -1000
+START_BLOCK ?= 80223813
 STOP_BLOCK ?= 0
-PARALLEL_JOBS ?= 5000
+PARALLEL_JOBS ?= 500
 .DEFAULT_GOAL := pack
 
 .PHONY: build
