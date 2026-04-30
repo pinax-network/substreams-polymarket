@@ -8,7 +8,7 @@ mod negrisk_adapter;
 mod safe_proxy_factory;
 mod uma_ctf_adapter;
 
-use crate::common::CreateTransaction;
+use crate::common::{CreateLog, CreateTransaction};
 use substreams::errors::Error;
 use substreams::Hex;
 
@@ -27,19 +27,27 @@ pub fn map_events(
             let log = log_view.log;
             let address = format!("0x{}", Hex::encode(&log.address));
 
-            if matches_any(&address, CTF_EXCHANGE_ADDRESSES) {
-                ctf_exchange::parse_log(log, &mut transaction)?;
+            let event = if matches_any(&address, CTF_EXCHANGE_ADDRESSES) {
+                ctf_exchange::parse_log(log)?
             } else if matches_any(&address, UMA_CTF_ADAPTER_ADDRESSES) {
-                uma_ctf_adapter::parse_log(log, &mut transaction)?;
+                uma_ctf_adapter::parse_log(log)?
             } else if matches_any(&address, NEGRISK_ADAPTER_ADDRESSES) {
-                negrisk_adapter::parse_log(log, &mut transaction)?;
+                negrisk_adapter::parse_log(log)?
             } else if matches_any(&address, CONDITIONAL_TOKENS_ADDRESSES) {
-                conditional_tokens::parse_log(log, &mut transaction)?;
+                conditional_tokens::parse_log(log)?
             } else if matches_any(&address, SAFE_PROXY_FACTORY_ADDRESSES) {
-                safe_proxy_factory::parse_log(log, &mut transaction)?;
+                safe_proxy_factory::parse_log(log)?
             } else if matches_any(&address, FEE_MODULE_ADDRESSES) {
-                fee_module::parse_log(log, &mut transaction)?;
-            }
+                fee_module::parse_log(log)?
+            } else {
+                None
+            };
+
+            if let Some(event) = event {
+                transaction
+                    .logs
+                    .push(pb::polymarket::v1::Log::create_log(log, event));
+            };
         }
 
         if !transaction.logs.is_empty() {

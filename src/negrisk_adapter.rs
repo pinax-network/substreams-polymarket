@@ -1,13 +1,9 @@
-use crate::common::CreateLog;
 use crate::pb::polymarket::v1 as pb;
 use substreams_abis::prediction::polymarket::v1::negriskadapter::events;
 use substreams_ethereum::pb::eth::v2::Log;
 use substreams_ethereum::Event;
 
-pub fn parse_log(
-    log: &Log,
-    transaction: &mut pb::Transaction,
-) -> Result<(), substreams::errors::Error> {
+pub fn parse_log(log: &Log) -> Result<Option<pb::log::Log>, substreams::errors::Error> {
     // MarketPrepared event
     if let Some(event) = events::MarketPrepared::match_and_decode(log) {
         let event = pb::log::Log::NegriskAdapterMarketPrepared(pb::NegRiskAdapterMarketPrepared {
@@ -16,8 +12,7 @@ pub fn parse_log(
             fee_bips: event.fee_bips.to_string(),
             data: event.data.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // NewAdmin event
@@ -26,8 +21,7 @@ pub fn parse_log(
             admin: event.admin.to_vec(),
             new_admin_address: event.new_admin_address.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // OutcomeReported event
@@ -38,8 +32,7 @@ pub fn parse_log(
                 question_id: event.question_id.to_vec(),
                 outcome: event.outcome,
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // PayoutRedemption event
@@ -51,8 +44,7 @@ pub fn parse_log(
                 amounts: event.amounts.iter().map(|a| a.to_string()).collect(),
                 payout: event.payout.to_string(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // PositionSplit event
@@ -62,8 +54,7 @@ pub fn parse_log(
             condition_id: event.condition_id.to_vec(),
             amount: event.amount.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // PositionsConverted event
@@ -75,8 +66,7 @@ pub fn parse_log(
                 index_set: event.index_set.to_string(),
                 amount: event.amount.to_string(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // PositionsMerge event
@@ -86,8 +76,7 @@ pub fn parse_log(
             condition_id: event.condition_id.to_vec(),
             amount: event.amount.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // QuestionPrepared event
@@ -99,8 +88,7 @@ pub fn parse_log(
                 index: event.index.to_string(),
                 data: event.data.to_vec(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // RemovedAdmin event
@@ -109,9 +97,8 @@ pub fn parse_log(
             admin: event.admin.to_vec(),
             removed_admin: event.removed_admin.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
-    Ok(())
+    Ok(None)
 }

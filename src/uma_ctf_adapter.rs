@@ -1,13 +1,9 @@
-use crate::common::CreateLog;
 use crate::pb::polymarket::v1 as pb;
 use substreams_abis::prediction::polymarket::v1::umactfadapter::v3::events;
 use substreams_ethereum::pb::eth::v2::Log;
 use substreams_ethereum::Event;
 
-pub fn parse_log(
-    log: &Log,
-    transaction: &mut pb::Transaction,
-) -> Result<(), substreams::errors::Error> {
+pub fn parse_log(log: &Log) -> Result<Option<pb::log::Log>, substreams::errors::Error> {
     // V3 events (same signatures as V2, so these will match both V2 and V3 contract events)
 
     // AncillaryDataUpdated event
@@ -19,8 +15,7 @@ pub fn parse_log(
                 update: event.update,
             },
         );
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // NewAdmin event
@@ -29,8 +24,7 @@ pub fn parse_log(
             admin: event.admin.to_vec(),
             new_admin_address: event.new_admin_address.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // QuestionEmergencyResolved event
@@ -41,8 +35,7 @@ pub fn parse_log(
                 payouts: event.payouts.iter().map(|p| p.to_string()).collect(),
             },
         );
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // QuestionFlagged event
@@ -50,8 +43,7 @@ pub fn parse_log(
         let event = pb::log::Log::UmaCtfAdapterQuestionFlagged(pb::UmaCtfAdapterQuestionFlagged {
             question_id: event.question_id.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // QuestionInitialized event
@@ -66,8 +58,7 @@ pub fn parse_log(
                 reward: event.reward.to_string(),
                 proposal_bond: event.proposal_bond.to_string(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // QuestionPaused event
@@ -75,8 +66,7 @@ pub fn parse_log(
         let event = pb::log::Log::UmaCtfAdapterQuestionPaused(pb::UmaCtfAdapterQuestionPaused {
             question_id: event.question_id.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // QuestionReset event
@@ -84,8 +74,7 @@ pub fn parse_log(
         let event = pb::log::Log::UmaCtfAdapterQuestionReset(pb::UmaCtfAdapterQuestionReset {
             question_id: event.question_id.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // QuestionResolved event
@@ -96,8 +85,7 @@ pub fn parse_log(
                 settled_price: event.settled_price.to_string(),
                 payouts: event.payouts.iter().map(|p| p.to_string()).collect(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // QuestionUnpaused event
@@ -106,8 +94,7 @@ pub fn parse_log(
             pb::log::Log::UmaCtfAdapterQuestionUnpaused(pb::UmaCtfAdapterQuestionUnpaused {
                 question_id: event.question_id.to_vec(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // RemovedAdmin event
@@ -116,8 +103,7 @@ pub fn parse_log(
             admin: event.admin.to_vec(),
             removed_admin: event.removed_admin.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // QuestionUnflagged event (V3 only)
@@ -126,9 +112,8 @@ pub fn parse_log(
             pb::log::Log::UmaCtfAdapterQuestionUnflagged(pb::UmaCtfAdapterQuestionUnflagged {
                 question_id: event.question_id.to_vec(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
-    Ok(())
+    Ok(None)
 }

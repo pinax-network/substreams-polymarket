@@ -1,14 +1,10 @@
-use crate::common::CreateLog;
 use crate::pb::polymarket::v1 as pb;
 use substreams::scalar::BigInt;
 use substreams_abis::prediction::polymarket::{v1, v2};
 use substreams_ethereum::pb::eth::v2::Log;
 use substreams_ethereum::Event;
 
-pub fn parse_log(
-    log: &Log,
-    transaction: &mut pb::Transaction,
-) -> Result<(), substreams::errors::Error> {
+pub fn parse_log(log: &Log) -> Result<Option<pb::log::Log>, substreams::errors::Error> {
     // FeeCharged event
     if let Some(event) = v1::ctfexchange::events::FeeCharged::match_and_decode(log) {
         let event = pb::log::Log::CtfExchangeFeeCharged(pb::CtfExchangeFeeCharged {
@@ -16,8 +12,7 @@ pub fn parse_log(
             token_id: Some(event.token_id.to_string()),
             amount: event.amount.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::ctfexchange::events::FeeCharged::match_and_decode(log) {
@@ -26,8 +21,7 @@ pub fn parse_log(
             token_id: None,
             amount: event.amount.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // NewAdmin event
@@ -36,8 +30,7 @@ pub fn parse_log(
             new_admin_address: event.new_admin_address.to_vec(),
             admin: event.admin.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // NewOperator event
@@ -46,8 +39,7 @@ pub fn parse_log(
             new_operator_address: event.new_operator_address.to_vec(),
             admin: event.admin.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // OrderCancelled event
@@ -55,14 +47,13 @@ pub fn parse_log(
         let event = pb::log::Log::CtfExchangeOrderCancelled(pb::CtfExchangeOrderCancelled {
             order_hash: event.order_hash.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // OrderFilled event
     if let Some(event) = v1::ctfexchange::events::OrderFilled::match_and_decode(log) {
         if is_self_referential_taker(&event.taker, &log.address) {
-            return Ok(());
+            return Ok(None);
         }
         let event = pb::log::Log::CtfExchangeOrderFilled(pb::CtfExchangeOrderFilled {
             order_hash: event.order_hash.to_vec(),
@@ -78,13 +69,12 @@ pub fn parse_log(
             builder: None,
             metadata: None,
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::ctfexchange::events::OrderFilled::match_and_decode(log) {
         if is_self_referential_taker(&event.taker, &log.address) {
-            return Ok(());
+            return Ok(None);
         }
         let event = pb::log::Log::CtfExchangeOrderFilled(pb::CtfExchangeOrderFilled {
             order_hash: event.order_hash.to_vec(),
@@ -100,8 +90,7 @@ pub fn parse_log(
             builder: Some(event.builder.to_vec()),
             metadata: Some(event.metadata.to_vec()),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // OrdersMatched event
@@ -116,8 +105,7 @@ pub fn parse_log(
             side: None,
             token_id: None,
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::ctfexchange::events::OrdersMatched::match_and_decode(log) {
@@ -131,8 +119,7 @@ pub fn parse_log(
             side: Some(side_to_u32(&event.side)?),
             token_id: Some(event.token_id.to_string()),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // ProxyFactoryUpdated event
@@ -142,8 +129,7 @@ pub fn parse_log(
                 old_proxy_factory: event.old_proxy_factory.to_vec(),
                 new_proxy_factory: event.new_proxy_factory.to_vec(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // RemovedAdmin event
@@ -152,8 +138,7 @@ pub fn parse_log(
             removed_admin: event.removed_admin.to_vec(),
             admin: event.admin.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // RemovedOperator event
@@ -162,8 +147,7 @@ pub fn parse_log(
             removed_operator: event.removed_operator.to_vec(),
             admin: event.admin.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // SafeFactoryUpdated event
@@ -173,8 +157,7 @@ pub fn parse_log(
                 old_safe_factory: event.old_safe_factory.to_vec(),
                 new_safe_factory: event.new_safe_factory.to_vec(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // TokenRegistered event
@@ -184,8 +167,7 @@ pub fn parse_log(
             token0: event.token0.to_string(),
             token1: event.token1.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // TradingPaused event
@@ -193,8 +175,7 @@ pub fn parse_log(
         let event = pb::log::Log::CtfExchangeTradingPaused(pb::CtfExchangeTradingPaused {
             pauser: event.pauser.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // TradingUnpaused event
@@ -202,8 +183,7 @@ pub fn parse_log(
         let event = pb::log::Log::CtfExchangeTradingUnpaused(pb::CtfExchangeTradingUnpaused {
             pauser: event.pauser.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::ctfexchange::events::FeeReceiverUpdated::match_and_decode(log) {
@@ -211,24 +191,21 @@ pub fn parse_log(
             pb::log::Log::CtfExchangeFeeReceiverUpdated(pb::CtfExchangeFeeReceiverUpdated {
                 fee_receiver: event.fee_receiver.to_vec(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::ctfexchange::events::MaxFeeRateUpdated::match_and_decode(log) {
         let event = pb::log::Log::CtfExchangeMaxFeeRateUpdated(pb::CtfExchangeMaxFeeRateUpdated {
             max_fee_rate: event.max_fee_rate.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::ctfexchange::events::OrderPreapproved::match_and_decode(log) {
         let event = pb::log::Log::CtfExchangeOrderPreapproved(pb::CtfExchangeOrderPreapproved {
             order_hash: event.order_hash.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::ctfexchange::events::OrderPreapprovalInvalidated::match_and_decode(log)
@@ -238,8 +215,7 @@ pub fn parse_log(
                 order_hash: event.order_hash.to_vec(),
             },
         );
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::ctfexchange::events::UserPaused::match_and_decode(log) {
@@ -247,16 +223,14 @@ pub fn parse_log(
             user: event.user.to_vec(),
             effective_pause_block: event.effective_pause_block.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::ctfexchange::events::UserUnpaused::match_and_decode(log) {
         let event = pb::log::Log::CtfExchangeUserUnpaused(pb::CtfExchangeUserUnpaused {
             user: event.user.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) =
@@ -268,8 +242,7 @@ pub fn parse_log(
                 new_interval: event.new_interval.to_string(),
             },
         );
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::collateraltoken::events::Wrapped::match_and_decode(log) {
@@ -279,8 +252,7 @@ pub fn parse_log(
             to: event.to.to_vec(),
             amount: event.amount.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     if let Some(event) = v2::collateraltoken::events::Unwrapped::match_and_decode(log) {
@@ -290,11 +262,10 @@ pub fn parse_log(
             to: event.to.to_vec(),
             amount: event.amount.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
-    Ok(())
+    Ok(None)
 }
 
 fn is_self_referential_taker(taker: &[u8], log_address: &[u8]) -> bool {

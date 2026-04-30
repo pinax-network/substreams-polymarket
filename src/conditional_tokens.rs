@@ -1,13 +1,9 @@
-use crate::common::CreateLog;
 use crate::pb::polymarket::v1 as pb;
 use substreams_abis::prediction::polymarket::v1::conditionaltokens::events as conditional_tokens;
 use substreams_ethereum::pb::eth::v2::Log;
 use substreams_ethereum::Event;
 
-pub fn parse_log(
-    log: &Log,
-    transaction: &mut pb::Transaction,
-) -> Result<(), substreams::errors::Error> {
+pub fn parse_log(log: &Log) -> Result<Option<pb::log::Log>, substreams::errors::Error> {
     // ConditionPreparation event
     if let Some(event) = conditional_tokens::ConditionPreparation::match_and_decode(log) {
         let event = pb::log::Log::ConditionalTokensConditionPreparation(
@@ -18,8 +14,7 @@ pub fn parse_log(
                 outcome_slot_count: event.outcome_slot_count.to_string(),
             },
         );
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // ConditionResolution event
@@ -37,8 +32,7 @@ pub fn parse_log(
                     .collect(),
             },
         );
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // PositionSplit event
@@ -52,8 +46,7 @@ pub fn parse_log(
                 partition: event.partition.iter().map(|p| p.to_string()).collect(),
                 amount: event.amount.to_string(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // PositionsMerge event
@@ -67,8 +60,7 @@ pub fn parse_log(
                 partition: event.partition.iter().map(|p| p.to_string()).collect(),
                 amount: event.amount.to_string(),
             });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // PayoutRedemption event
@@ -83,9 +75,8 @@ pub fn parse_log(
                 payout: event.payout.to_string(),
             },
         );
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
-    Ok(())
+    Ok(None)
 }

@@ -1,13 +1,9 @@
-use crate::common::CreateLog;
 use crate::pb::polymarket::v1 as pb;
 use substreams_abis::prediction::polymarket::v1::feemodule::events;
 use substreams_ethereum::pb::eth::v2::Log;
 use substreams_ethereum::Event;
 
-pub fn parse_log(
-    log: &Log,
-    transaction: &mut pb::Transaction,
-) -> Result<(), substreams::errors::Error> {
+pub fn parse_log(log: &Log) -> Result<Option<pb::log::Log>, substreams::errors::Error> {
     // FeeRefunded event
     if let Some(event) = events::FeeRefunded::match_and_decode(log) {
         let event = pb::log::Log::FeeModuleFeeRefunded(pb::FeeModuleFeeRefunded {
@@ -17,8 +13,7 @@ pub fn parse_log(
             refund: event.refund.to_string(),
             fee_charged: event.fee_charged.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // FeeWithdrawn event
@@ -29,8 +24,7 @@ pub fn parse_log(
             id: event.id.to_string(),
             amount: event.amount.to_string(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // NewAdmin event
@@ -39,8 +33,7 @@ pub fn parse_log(
             admin: event.admin.to_vec(),
             new_admin_address: event.new_admin_address.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
     // RemovedAdmin event
@@ -49,9 +42,8 @@ pub fn parse_log(
             admin: event.admin.to_vec(),
             removed_admin: event.removed_admin.to_vec(),
         });
-        transaction.logs.push(pb::Log::create_log(log, event));
-        return Ok(());
+        return Ok(Some(event));
     }
 
-    Ok(())
+    Ok(None)
 }
