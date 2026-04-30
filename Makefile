@@ -1,7 +1,7 @@
 ENDPOINT ?= polygon.substreams.pinax.network:443
 START_BLOCK ?= 0
 STOP_BLOCK ?= 0
-PARALLEL_JOBS ?= 500
+PARALLEL_JOBS ?= 5000
 .DEFAULT_GOAL := pack
 
 .PHONY: protogen

@@ -15,11 +15,9 @@ use substreams::Hex;
 
 #[substreams::handlers::map]
 pub fn map_events(
-    params: String,
     block: substreams_ethereum::pb::eth::v2::Block,
 ) -> Result<pb::polymarket::v1::Events, Error> {
     let mut events = pb::polymarket::v1::Events::default();
-    let _source_filter = params;
 
     for trx in block.transactions() {
         let mut transaction = pb::polymarket::v1::Transaction::create_transaction(trx);
