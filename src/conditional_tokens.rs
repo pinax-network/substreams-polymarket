@@ -1,188 +1,129 @@
-use crate::common::bytes_to_hex;
-use crate::pb::polymarket::v1 as polymarket;
-use substreams::pb::substreams::Clock;
-use substreams_database_change::tables::{Row, Tables};
+use crate::common::{CreateLog, CreateTransaction};
+use crate::pb::polymarket::v1 as pb;
+use substreams::Hex;
+use substreams_abis::prediction::polymarket::v1::conditionaltokens::events as conditional_tokens;
+use substreams_ethereum::pb::eth::v2::Block;
+use substreams_ethereum::Event;
 
-use crate::{logs::log_key, set_clock};
+pub fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::errors::Error> {
+    let mut events = pb::Events::default();
+    let matcher = substreams::expr_matcher(&params);
+    let mut total_condition_preparation = 0;
+    let mut total_condition_resolution = 0;
+    let mut total_position_split = 0;
+    let mut total_positions_merge = 0;
+    let mut total_payout_redemption = 0;
 
-pub fn process_events(tables: &mut Tables, clock: &Clock, events: &polymarket::Events) {
-    for (tx_index, tx) in events.transactions.iter().enumerate() {
-        for (log_index, log) in tx.logs.iter().enumerate() {
-            match &log.log {
-                Some(polymarket::log::Log::ConditionalTokensConditionPreparation(event)) => {
-                    process_condition_preparation(
-                        tables, clock, tx, log, tx_index, log_index, event,
-                    );
-                }
-                Some(polymarket::log::Log::ConditionalTokensConditionResolution(event)) => {
-                    process_condition_resolution(
-                        tables, clock, tx, log, tx_index, log_index, event,
-                    );
-                }
-                Some(polymarket::log::Log::ConditionalTokensPositionSplit(event)) => {
-                    process_position_split(tables, clock, tx, log, tx_index, log_index, event);
-                }
-                Some(polymarket::log::Log::ConditionalTokensPositionsMerge(event)) => {
-                    process_positions_merge(tables, clock, tx, log, tx_index, log_index, event);
-                }
-                Some(polymarket::log::Log::ConditionalTokensPayoutRedemption(event)) => {
-                    process_payout_redemption(tables, clock, tx, log, tx_index, log_index, event);
-                }
-                _ => {}
+    for trx in block.transactions() {
+        let mut transaction = pb::Transaction::create_transaction(trx);
+        for log_view in trx.receipt().logs() {
+            let log = log_view.log;
+
+            // Skip logs that don't match the filter (if params provided)
+            if !matcher.matches_keys(&vec![format!("evt_addr:0x{}", Hex::encode(&log.address))]) {
+                continue;
+            }
+
+            // ConditionPreparation event
+            if let Some(event) = conditional_tokens::ConditionPreparation::match_and_decode(log) {
+                total_condition_preparation += 1;
+                let event = pb::log::Log::ConditionalTokensConditionPreparation(
+                    pb::ConditionalTokensConditionPreparation {
+                        condition_id: event.condition_id.to_vec(),
+                        oracle: event.oracle.to_vec(),
+                        question_id: event.question_id.to_vec(),
+                        outcome_slot_count: event.outcome_slot_count.to_string(),
+                    },
+                );
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            // ConditionResolution event
+            if let Some(event) = conditional_tokens::ConditionResolution::match_and_decode(log) {
+                total_condition_resolution += 1;
+                let event = pb::log::Log::ConditionalTokensConditionResolution(
+                    pb::ConditionalTokensConditionResolution {
+                        condition_id: event.condition_id.to_vec(),
+                        oracle: event.oracle.to_vec(),
+                        question_id: event.question_id.to_vec(),
+                        outcome_slot_count: event.outcome_slot_count.to_string(),
+                        payout_numerators: event
+                            .payout_numerators
+                            .iter()
+                            .map(|n| n.to_string())
+                            .collect(),
+                    },
+                );
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            // PositionSplit event
+            if let Some(event) = conditional_tokens::PositionSplit::match_and_decode(log) {
+                total_position_split += 1;
+                let event = pb::log::Log::ConditionalTokensPositionSplit(
+                    pb::ConditionalTokensPositionSplit {
+                        stakeholder: event.stakeholder.to_vec(),
+                        collateral_token: event.collateral_token.to_vec(),
+                        parent_collection_id: event.parent_collection_id.to_vec(),
+                        condition_id: event.condition_id.to_vec(),
+                        partition: event.partition.iter().map(|p| p.to_string()).collect(),
+                        amount: event.amount.to_string(),
+                    },
+                );
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            // PositionsMerge event
+            if let Some(event) = conditional_tokens::PositionsMerge::match_and_decode(log) {
+                total_positions_merge += 1;
+                let event = pb::log::Log::ConditionalTokensPositionsMerge(
+                    pb::ConditionalTokensPositionsMerge {
+                        stakeholder: event.stakeholder.to_vec(),
+                        collateral_token: event.collateral_token.to_vec(),
+                        parent_collection_id: event.parent_collection_id.to_vec(),
+                        condition_id: event.condition_id.to_vec(),
+                        partition: event.partition.iter().map(|p| p.to_string()).collect(),
+                        amount: event.amount.to_string(),
+                    },
+                );
+                transaction.logs.push(pb::Log::create_log(log, event));
+            }
+
+            // PayoutRedemption event
+            if let Some(event) = conditional_tokens::PayoutRedemption::match_and_decode(log) {
+                total_payout_redemption += 1;
+                let event = pb::log::Log::ConditionalTokensPayoutRedemption(
+                    pb::ConditionalTokensPayoutRedemption {
+                        redeemer: event.redeemer.to_vec(),
+                        collateral_token: event.collateral_token.to_vec(),
+                        parent_collection_id: event.parent_collection_id.to_vec(),
+                        condition_id: event.condition_id.to_vec(),
+                        index_sets: event.index_sets.iter().map(|i| i.to_string()).collect(),
+                        payout: event.payout.to_string(),
+                    },
+                );
+                transaction.logs.push(pb::Log::create_log(log, event));
             }
         }
+
+        if !transaction.logs.is_empty() {
+            events.transactions.push(transaction);
+        }
     }
-}
 
-fn process_condition_preparation(
-    tables: &mut Tables,
-    clock: &Clock,
-    tx: &polymarket::Transaction,
-    log: &polymarket::Log,
-    tx_index: usize,
-    log_index: usize,
-    event: &polymarket::ConditionalTokensConditionPreparation,
-) {
-    let key = log_key(clock, log.ordinal);
-    let row = tables.create_row("conditionaltokens_condition_preparation", key);
-
-    set_clock(clock, row);
-    set_conditionaltokens_tx(tx, tx_index, row);
-    set_conditionaltokens_log(log, log_index, row);
-
-    row.set("condition_id", bytes_to_hex(&event.condition_id));
-    row.set("oracle", bytes_to_hex(&event.oracle));
-    row.set("question_id", bytes_to_hex(&event.question_id));
-    row.set("outcome_slot_count", &event.outcome_slot_count);
-}
-
-fn process_condition_resolution(
-    tables: &mut Tables,
-    clock: &Clock,
-    tx: &polymarket::Transaction,
-    log: &polymarket::Log,
-    tx_index: usize,
-    log_index: usize,
-    event: &polymarket::ConditionalTokensConditionResolution,
-) {
-    let key = log_key(clock, log.ordinal);
-    let row = tables.create_row("conditionaltokens_condition_resolution", key);
-
-    set_clock(clock, row);
-    set_conditionaltokens_tx(tx, tx_index, row);
-    set_conditionaltokens_log(log, log_index, row);
-
-    row.set("condition_id", bytes_to_hex(&event.condition_id));
-    row.set("oracle", bytes_to_hex(&event.oracle));
-    row.set("question_id", bytes_to_hex(&event.question_id));
-    row.set("outcome_slot_count", &event.outcome_slot_count);
-    row.set("payout_numerators", event.payout_numerators.join(","));
-}
-
-fn process_position_split(
-    tables: &mut Tables,
-    clock: &Clock,
-    tx: &polymarket::Transaction,
-    log: &polymarket::Log,
-    tx_index: usize,
-    log_index: usize,
-    event: &polymarket::ConditionalTokensPositionSplit,
-) {
-    let key = log_key(clock, log.ordinal);
-    let row = tables.create_row("conditionaltokens_position_split", key);
-
-    set_clock(clock, row);
-    set_conditionaltokens_tx(tx, tx_index, row);
-    set_conditionaltokens_log(log, log_index, row);
-
-    row.set("stakeholder", bytes_to_hex(&event.stakeholder));
-    row.set("collateral_token", bytes_to_hex(&event.collateral_token));
-    row.set(
-        "parent_collection_id",
-        bytes_to_hex(&event.parent_collection_id),
+    substreams::log::info!("Total Transactions: {}", block.transaction_traces.len());
+    substreams::log::info!("Total Events: {}", events.transactions.len());
+    substreams::log::info!(
+        "Total ConditionPreparation events: {}",
+        total_condition_preparation
     );
-    row.set("condition_id", bytes_to_hex(&event.condition_id));
-    row.set("partition", event.partition.join(","));
-    row.set("amount", &event.amount);
-}
-
-fn process_positions_merge(
-    tables: &mut Tables,
-    clock: &Clock,
-    tx: &polymarket::Transaction,
-    log: &polymarket::Log,
-    tx_index: usize,
-    log_index: usize,
-    event: &polymarket::ConditionalTokensPositionsMerge,
-) {
-    let key = log_key(clock, log.ordinal);
-    let row = tables.create_row("conditionaltokens_positions_merge", key);
-
-    set_clock(clock, row);
-    set_conditionaltokens_tx(tx, tx_index, row);
-    set_conditionaltokens_log(log, log_index, row);
-
-    row.set("stakeholder", bytes_to_hex(&event.stakeholder));
-    row.set("collateral_token", bytes_to_hex(&event.collateral_token));
-    row.set(
-        "parent_collection_id",
-        bytes_to_hex(&event.parent_collection_id),
+    substreams::log::info!(
+        "Total ConditionResolution events: {}",
+        total_condition_resolution
     );
-    row.set("condition_id", bytes_to_hex(&event.condition_id));
-    row.set("partition", event.partition.join(","));
-    row.set("amount", &event.amount);
-}
+    substreams::log::info!("Total PositionSplit events: {}", total_position_split);
+    substreams::log::info!("Total PositionsMerge events: {}", total_positions_merge);
+    substreams::log::info!("Total PayoutRedemption events: {}", total_payout_redemption);
 
-fn process_payout_redemption(
-    tables: &mut Tables,
-    clock: &Clock,
-    tx: &polymarket::Transaction,
-    log: &polymarket::Log,
-    tx_index: usize,
-    log_index: usize,
-    event: &polymarket::ConditionalTokensPayoutRedemption,
-) {
-    let key = log_key(clock, log.ordinal);
-    let row = tables.create_row("conditionaltokens_payout_redemption", key);
-
-    set_clock(clock, row);
-    set_conditionaltokens_tx(tx, tx_index, row);
-    set_conditionaltokens_log(log, log_index, row);
-
-    row.set("redeemer", bytes_to_hex(&event.redeemer));
-    row.set("collateral_token", bytes_to_hex(&event.collateral_token));
-    row.set(
-        "parent_collection_id",
-        bytes_to_hex(&event.parent_collection_id),
-    );
-    row.set("condition_id", bytes_to_hex(&event.condition_id));
-    row.set("index_sets", event.index_sets.join(","));
-    row.set("payout", &event.payout);
-}
-
-fn set_conditionaltokens_tx(tx: &polymarket::Transaction, tx_index: usize, row: &mut Row) {
-    let tx_to = match &tx.to {
-        Some(addr) => bytes_to_hex(addr),
-        None => "".to_string(),
-    };
-    row.set("tx_index", tx_index as u32);
-    row.set("tx_hash", bytes_to_hex(&tx.hash));
-    row.set("tx_from", bytes_to_hex(&tx.from));
-    row.set("tx_to", tx_to);
-    row.set("tx_nonce", tx.nonce);
-    row.set("tx_gas_price", tx.gas_price.to_string());
-    row.set("tx_gas_limit", tx.gas_limit);
-    row.set("tx_gas_used", tx.gas_used);
-    row.set("tx_value", tx.value.to_string());
-}
-
-fn set_conditionaltokens_log(log: &polymarket::Log, log_index: usize, row: &mut Row) {
-    row.set("log_index", log_index as u32);
-    row.set("log_address", bytes_to_hex(&log.address));
-    row.set("log_ordinal", log.ordinal);
-    row.set("log_topics", {
-        let topics: Vec<String> = log.topics.iter().map(|topic| bytes_to_hex(topic)).collect();
-        topics.join(",")
-    });
-    row.set("log_data", bytes_to_hex(&log.data));
+    Ok(events)
 }

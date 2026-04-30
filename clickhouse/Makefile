@@ -6,11 +6,11 @@ PARALLEL_JOBS ?= 500
 
 .PHONY: build
 build:
-	$(MAKE) -C .. build
+	$(MAKE) -C ../database-change build
 
 .PHONY: pack
 pack:
-	$(MAKE) -C .. pack
+	$(MAKE) -C ../database-change pack
 	substreams pack -o ../spkg/{spkgDefaultName}
 
 .PHONY: noop

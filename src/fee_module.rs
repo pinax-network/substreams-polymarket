@@ -1,140 +1,89 @@
-use crate::common::bytes_to_hex;
-use crate::pb::polymarket::v1 as polymarket;
-use substreams::pb::substreams::Clock;
-use substreams_database_change::tables::{Row, Tables};
+use crate::common::{CreateLog, CreateTransaction};
+use crate::pb::polymarket::v1 as pb;
+use substreams::Hex;
+use substreams_abis::prediction::polymarket::v1::feemodule::events;
+use substreams_ethereum::pb::eth::v2::Block;
+use substreams_ethereum::Event;
 
-use crate::{logs::log_key, set_clock};
+pub fn map_events(params: String, block: Block) -> Result<pb::Events, substreams::errors::Error> {
+    let mut events_output = pb::Events::default();
+    let matcher = substreams::expr_matcher(&params);
+    let mut total_fee_refunded = 0;
+    let mut total_fee_withdrawn = 0;
+    let mut total_new_admin = 0;
+    let mut total_removed_admin = 0;
 
-pub fn process_events(tables: &mut Tables, clock: &Clock, events: &polymarket::Events) {
-    for (tx_index, tx) in events.transactions.iter().enumerate() {
-        for (log_index, log) in tx.logs.iter().enumerate() {
-            match &log.log {
-                Some(polymarket::log::Log::FeeModuleFeeRefunded(event)) => {
-                    process_fee_refunded(tables, clock, tx, log, tx_index, log_index, event);
-                }
-                Some(polymarket::log::Log::FeeModuleFeeWithdrawn(event)) => {
-                    process_fee_withdrawn(tables, clock, tx, log, tx_index, log_index, event);
-                }
-                Some(polymarket::log::Log::FeeModuleNewAdmin(event)) => {
-                    process_new_admin(tables, clock, tx, log, tx_index, log_index, event);
-                }
-                Some(polymarket::log::Log::FeeModuleRemovedAdmin(event)) => {
-                    process_removed_admin(tables, clock, tx, log, tx_index, log_index, event);
-                }
-                _ => {}
+    for trx in block.transactions() {
+        let mut transaction = pb::Transaction::create_transaction(trx);
+        for log_view in trx.receipt().logs() {
+            let log = log_view.log;
+
+            // Skip logs that don't match the filter (if params provided)
+            if !matcher.matches_keys(&vec![format!("evt_addr:0x{}", Hex::encode(&log.address))]) {
+                continue;
+            }
+
+            // FeeRefunded event
+            if let Some(event) = events::FeeRefunded::match_and_decode(log) {
+                total_fee_refunded += 1;
+                let event = pb::log::Log::FeeModuleFeeRefunded(pb::FeeModuleFeeRefunded {
+                    order_hash: event.order_hash.to_vec(),
+                    to: event.to.to_vec(),
+                    id: event.id.to_string(),
+                    refund: event.refund.to_string(),
+                    fee_charged: event.fee_charged.to_string(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+                continue;
+            }
+
+            // FeeWithdrawn event
+            if let Some(event) = events::FeeWithdrawn::match_and_decode(log) {
+                total_fee_withdrawn += 1;
+                let event = pb::log::Log::FeeModuleFeeWithdrawn(pb::FeeModuleFeeWithdrawn {
+                    token: event.token.to_vec(),
+                    to: event.to.to_vec(),
+                    id: event.id.to_string(),
+                    amount: event.amount.to_string(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+                continue;
+            }
+
+            // NewAdmin event
+            if let Some(event) = events::NewAdmin::match_and_decode(log) {
+                total_new_admin += 1;
+                let event = pb::log::Log::FeeModuleNewAdmin(pb::FeeModuleNewAdmin {
+                    admin: event.admin.to_vec(),
+                    new_admin_address: event.new_admin_address.to_vec(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+                continue;
+            }
+
+            // RemovedAdmin event
+            if let Some(event) = events::RemovedAdmin::match_and_decode(log) {
+                total_removed_admin += 1;
+                let event = pb::log::Log::FeeModuleRemovedAdmin(pb::FeeModuleRemovedAdmin {
+                    admin: event.admin.to_vec(),
+                    removed_admin: event.removed_admin.to_vec(),
+                });
+                transaction.logs.push(pb::Log::create_log(log, event));
+                continue;
             }
         }
+
+        if !transaction.logs.is_empty() {
+            events_output.transactions.push(transaction);
+        }
     }
-}
 
-fn process_fee_refunded(
-    tables: &mut Tables,
-    clock: &Clock,
-    tx: &polymarket::Transaction,
-    log: &polymarket::Log,
-    tx_index: usize,
-    log_index: usize,
-    event: &polymarket::FeeModuleFeeRefunded,
-) {
-    let key = log_key(clock, log.ordinal);
-    let row = tables.create_row("feemodule_fee_refunded", key);
+    substreams::log::info!("Total Transactions: {}", block.transaction_traces.len());
+    substreams::log::info!("Total Events: {}", events_output.transactions.len());
+    substreams::log::info!("Total FeeRefunded events: {}", total_fee_refunded);
+    substreams::log::info!("Total FeeWithdrawn events: {}", total_fee_withdrawn);
+    substreams::log::info!("Total NewAdmin events: {}", total_new_admin);
+    substreams::log::info!("Total RemovedAdmin events: {}", total_removed_admin);
 
-    set_clock(clock, row);
-    set_feemodule_tx(tx, tx_index, row);
-    set_feemodule_log(log, log_index, row);
-
-    row.set("order_hash", bytes_to_hex(&event.order_hash));
-    row.set("to_address", bytes_to_hex(&event.to));
-    row.set("token_id", &event.id);
-    row.set("refund", &event.refund);
-    row.set("fee_charged", &event.fee_charged);
-}
-
-fn process_fee_withdrawn(
-    tables: &mut Tables,
-    clock: &Clock,
-    tx: &polymarket::Transaction,
-    log: &polymarket::Log,
-    tx_index: usize,
-    log_index: usize,
-    event: &polymarket::FeeModuleFeeWithdrawn,
-) {
-    let key = log_key(clock, log.ordinal);
-    let row = tables.create_row("feemodule_fee_withdrawn", key);
-
-    set_clock(clock, row);
-    set_feemodule_tx(tx, tx_index, row);
-    set_feemodule_log(log, log_index, row);
-
-    row.set("token", bytes_to_hex(&event.token));
-    row.set("to_address", bytes_to_hex(&event.to));
-    row.set("token_id", &event.id);
-    row.set("amount", &event.amount);
-}
-
-fn process_new_admin(
-    tables: &mut Tables,
-    clock: &Clock,
-    tx: &polymarket::Transaction,
-    log: &polymarket::Log,
-    tx_index: usize,
-    log_index: usize,
-    event: &polymarket::FeeModuleNewAdmin,
-) {
-    let key = log_key(clock, log.ordinal);
-    let row = tables.create_row("feemodule_new_admin", key);
-
-    set_clock(clock, row);
-    set_feemodule_tx(tx, tx_index, row);
-    set_feemodule_log(log, log_index, row);
-
-    row.set("admin", bytes_to_hex(&event.admin));
-    row.set("new_admin_address", bytes_to_hex(&event.new_admin_address));
-}
-
-fn process_removed_admin(
-    tables: &mut Tables,
-    clock: &Clock,
-    tx: &polymarket::Transaction,
-    log: &polymarket::Log,
-    tx_index: usize,
-    log_index: usize,
-    event: &polymarket::FeeModuleRemovedAdmin,
-) {
-    let key = log_key(clock, log.ordinal);
-    let row = tables.create_row("feemodule_removed_admin", key);
-
-    set_clock(clock, row);
-    set_feemodule_tx(tx, tx_index, row);
-    set_feemodule_log(log, log_index, row);
-
-    row.set("admin", bytes_to_hex(&event.admin));
-    row.set("removed_admin", bytes_to_hex(&event.removed_admin));
-}
-
-fn set_feemodule_tx(tx: &polymarket::Transaction, tx_index: usize, row: &mut Row) {
-    let tx_to = match &tx.to {
-        Some(addr) => bytes_to_hex(addr),
-        None => "".to_string(),
-    };
-    row.set("tx_index", tx_index as u32);
-    row.set("tx_hash", bytes_to_hex(&tx.hash));
-    row.set("tx_from", bytes_to_hex(&tx.from));
-    row.set("tx_to", tx_to);
-    row.set("tx_nonce", tx.nonce);
-    row.set("tx_gas_price", tx.gas_price.to_string());
-    row.set("tx_gas_limit", tx.gas_limit);
-    row.set("tx_gas_used", tx.gas_used);
-    row.set("tx_value", tx.value.to_string());
-}
-
-fn set_feemodule_log(log: &polymarket::Log, log_index: usize, row: &mut Row) {
-    row.set("log_index", log_index as u32);
-    row.set("log_address", bytes_to_hex(&log.address));
-    row.set("log_ordinal", log.ordinal);
-    row.set("log_topics", {
-        let topics: Vec<String> = log.topics.iter().map(|topic| bytes_to_hex(topic)).collect();
-        topics.join(",")
-    });
-    row.set("log_data", bytes_to_hex(&log.data));
+    Ok(events_output)
 }

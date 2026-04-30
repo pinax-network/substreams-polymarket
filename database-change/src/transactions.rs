@@ -1,5 +1,5 @@
 use crate::common::bytes_to_hex;
-use crate::pb::polymarket::v1 as polymarket;
+use polymarket::pb::polymarket::v1 as polymarket;
 
 pub fn set_template_tx(
     tx: &polymarket::Transaction,

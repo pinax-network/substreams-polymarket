@@ -1,5 +1,5 @@
 use crate::common::bytes_to_hex;
-use crate::pb::polymarket::v1 as polymarket;
+use polymarket::pb::polymarket::v1 as polymarket;
 use substreams::pb::substreams::Clock;
 
 pub fn log_key(clock: &Clock, ordinal: u64) -> [(&'static str, String); 4] {

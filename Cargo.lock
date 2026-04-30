@@ -150,6 +150,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "database-change"
+version = "0.0.0"
+dependencies = [
+ "polymarket",
+ "substreams",
+ "substreams-database-change",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -610,7 +619,6 @@ dependencies = [
  "prost-types 0.13.5",
  "substreams",
  "substreams-abis",
- "substreams-database-change",
  "substreams-ethereum",
 ]
 

@@ -5,6 +5,10 @@ edition = "2021"
 version = "0.0.0"
 license = "Apache-2.0"
 
+[workspace]
+members = ["database-change"]
+resolver = "2"
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -12,7 +16,6 @@ crate-type = ["cdylib", "rlib"]
 substreams = "0.7.6"
 substreams-abis = { git = "https://github.com/pinax-network/substreams-abis.git", rev = "a72c8d754d0e0a2a1c2486317f4f5f38359d54cc" }
 substreams-ethereum = "0.11.1"
-substreams-database-change = "3.0.0"
 prost = "0.13"
 prost-types = "0.13"
 
