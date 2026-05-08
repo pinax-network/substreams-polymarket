@@ -1,6 +1,21 @@
 -- Fee Aggregation --
--- Aggregated fee data per market token from OrderFilled events
--- Tracks total fees collected, trade counts, and volume for context
+-- Per-asset fee data from CTFExchange FeeCharged events, plus matching
+-- per-asset refunds from FeeModule FeeRefunded events. Trade-volume context
+-- lives in state_orderbook (joined when needed); not duplicated here.
+--
+-- Why two sources:
+--   * FeeCharged is the gross fee transferred from the maker/taker proceeds
+--     to the operator on every match. Both maker-side and taker-side fees
+--     are emitted (when non-zero), so summing every event gives the true
+--     gross fee. The previous mv_state_fee read OrderFilled.fee, which
+--     captured maker-side rows only after substreams' self-referential
+--     filter dropped taker-side OrderFilled events — silently undercounting
+--     V1 by ~50% and producing ~$0 on V2 (V2 OrderFilled.fee is left at 0
+--     by design, fees come exclusively via FeeCharged).
+--   * FeeRefunded carries the refund portion of the Maker Rebates Program
+--     on V1. ~83% of gross fees on V1 are refunded back to makers, so
+--     net fees retained by Polymarket = total_fee - total_refund.
+--     V2 has no FeeRefunded events; total_refund stays 0 there.
 
 -- State Fee Table --
 CREATE TABLE IF NOT EXISTS state_fee (
@@ -15,16 +30,12 @@ CREATE TABLE IF NOT EXISTS state_fee (
     max_block_num           SimpleAggregateFunction(max, UInt32) COMMENT 'last block number seen',
 
     -- Fee identity --
-    asset_id                String COMMENT 'Asset ID (Token ID as string) — the token being traded',
+    asset_id                String COMMENT 'V1: asset the fee was paid in. BUY-side fees use the outcome token id; SELL-side fees use "0" (USDC). V2: always "0" (FeeCharged carries no token_id, fees are pUSD-only)',
 
     -- Fee aggregates --
-    total_fee               SimpleAggregateFunction(sum, Int256) COMMENT 'Total fees collected in window (USDC base units)',
-    fee_count               SimpleAggregateFunction(sum, UInt64) COMMENT 'Number of trades with non-zero fee',
-    total_volume            SimpleAggregateFunction(sum, Int256) COMMENT 'Total collateral volume for context (USDC base units)',
-    trade_count             SimpleAggregateFunction(sum, UInt64) COMMENT 'Total number of trades',
-
-    -- Unique participants --
-    uniq_fee_payers         AggregateFunction(uniq, String) COMMENT 'Unique taker addresses who paid fees',
+    total_fee               SimpleAggregateFunction(sum, Int256) COMMENT 'Gross fees collected in window (USDC base units, before maker rebates)',
+    total_refund            SimpleAggregateFunction(sum, Int256) COMMENT 'Maker rebates refunded in window (V1 only; 0 on V2). Net fee = total_fee - total_refund',
+    fee_count               SimpleAggregateFunction(sum, UInt64) COMMENT 'Number of FeeCharged events in window',
 
     -- indexes --
     INDEX idx_timestamp         (timestamp)         TYPE minmax         GRANULARITY 1,
@@ -37,18 +48,21 @@ ORDER BY (
     asset_id,
     timestamp
 )
-COMMENT 'Fee aggregation per market token, from OrderFilled events.';
+COMMENT 'Per-asset fee aggregation, sourced from CTFExchange FeeCharged + FeeModule FeeRefunded events.';
 
--- Materialized View for Fee Aggregation from OrderFilled events --
--- Fee is charged on the taker side of every trade
--- asset_id is the non-USDC token being traded
+-- Drop legacy MVs before recreating, so existing databases pick up the new
+-- SELECTs. Idempotent: noop on a fresh database.
+DROP TABLE IF EXISTS mv_state_fee;
+DROP TABLE IF EXISTS mv_state_fee_refund;
+
+-- Materialized View for gross fees from FeeCharged events --
+-- Each match emits one FeeCharged per side that pays a non-zero fee; summing
+-- all of them gives the true gross fee. Works identically for V1 and V2.
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_fee
 TO state_fee
 AS
 WITH
-    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals,
-    toString(if(taker_asset_id = 0, maker_asset_id, taker_asset_id)) AS asset_id,
-    toInt256(if(taker_asset_id = 0, taker_amount_filled, maker_amount_filled)) AS collateral_amount
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
 SELECT
     arrayJoin(intervals) AS interval_min,
     toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
@@ -56,14 +70,37 @@ SELECT
     max(timestamp) AS max_timestamp,
     min(block_num) AS min_block_num,
     max(block_num) AS max_block_num,
+    toString(token_id) AS asset_id,
+    sum(toInt256(amount)) AS total_fee,
+    toInt256(0) AS total_refund,
+    count() AS fee_count
+FROM ctfexchange_fee_charged
+GROUP BY
+    interval_min,
     asset_id,
-    sum(toInt256(fee)) AS total_fee,
-    countIf(fee > 0) AS fee_count,
-    sum(collateral_amount) AS total_volume,
-    count() AS trade_count,
-    uniqStateIf(taker, fee > 0) AS uniq_fee_payers
-FROM ctfexchange_order_filled
-WHERE taker_asset_id = 0 OR maker_asset_id = 0
+    timestamp;
+
+-- Materialized View for maker rebates from FeeRefunded events --
+-- V1-only. FeeRefunded.token_id matches the corresponding FeeCharged.token_id,
+-- so refunds aggregate cleanly on the same (interval_min, asset_id, timestamp)
+-- key. V2 has no FeeRefunded source; this MV is dormant on V2 windows.
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_fee_refund
+TO state_fee
+AS
+WITH
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+SELECT
+    arrayJoin(intervals) AS interval_min,
+    toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
+    min(timestamp) AS min_timestamp,
+    max(timestamp) AS max_timestamp,
+    min(block_num) AS min_block_num,
+    max(block_num) AS max_block_num,
+    toString(token_id) AS asset_id,
+    toInt256(0) AS total_fee,
+    sum(toInt256(refund)) AS total_refund,
+    toUInt64(0) AS fee_count
+FROM feemodule_fee_refunded
 GROUP BY
     interval_min,
     asset_id,
