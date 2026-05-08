@@ -3,6 +3,15 @@
 -- rate) is sourced from state_orderbook on the same (interval_min, asset_id,
 -- timestamp) key — no need to duplicate it in state_fee.
 --
+-- Gross vs net:
+--   * total_fee   — gross fees collected via FeeCharged (both maker and
+--                   taker sides, when non-zero).
+--   * total_refund— maker rebates refunded via FeeRefunded (V1 only;
+--                   V2 has no on-chain rebate events).
+--   * net_fee     — total_fee - total_refund. On V1 this is what stays
+--                   with Polymarket after the Maker Rebates Program; on V2
+--                   it equals total_fee.
+--
 -- Both state_fee and state_orderbook are AggregatingMergeTree with multiple
 -- rows per key between merges; we pre-aggregate each in a CTE before joining
 -- so the join doesn't multiply row counts.
@@ -18,8 +27,8 @@ WITH
             min(min_block_num)              AS min_block_num,
             max(max_block_num)              AS max_block_num,
             sum(total_fee)                  AS total_fee,
-            sum(fee_count)                  AS fee_count,
-            uniqMerge(uniq_fee_payers)      AS unique_fee_payers
+            sum(total_refund)               AS total_refund,
+            sum(fee_count)                  AS fee_count
         FROM state_fee
         GROUP BY interval_min, asset_id, timestamp
     ),
@@ -42,15 +51,21 @@ SELECT
     f.min_block_num                                                              AS min_block_num,
     f.max_block_num                                                              AS max_block_num,
     f.total_fee                                                                  AS total_fee,
+    f.total_refund                                                               AS total_refund,
+    f.total_fee - f.total_refund                                                 AS net_fee,
     f.fee_count                                                                  AS fee_count,
     v.collateral_volume                                                          AS collateral_volume,
     v.trade_count                                                                AS trade_count,
     toFloat64(f.total_fee) / 1000000.0                                           AS scaled_total_fee,
+    toFloat64(f.total_refund) / 1000000.0                                        AS scaled_total_refund,
+    toFloat64(f.total_fee - f.total_refund) / 1000000.0                          AS scaled_net_fee,
     toFloat64(v.collateral_volume) / 1000000.0                                   AS scaled_collateral_volume,
     if(v.collateral_volume > 0,
         toFloat64(f.total_fee) / toFloat64(v.collateral_volume),
-        0)                                                                       AS effective_fee_rate,
-    f.unique_fee_payers                                                          AS unique_fee_payers
+        0)                                                                       AS effective_fee_rate_gross,
+    if(v.collateral_volume > 0,
+        toFloat64(f.total_fee - f.total_refund) / toFloat64(v.collateral_volume),
+        0)                                                                       AS effective_fee_rate_net
 FROM fees AS f
 LEFT JOIN volumes AS v
     ON v.interval_min = f.interval_min

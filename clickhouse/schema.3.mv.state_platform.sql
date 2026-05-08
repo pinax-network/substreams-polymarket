@@ -20,9 +20,10 @@ CREATE TABLE IF NOT EXISTS state_platform (
     `oi_transactions` SimpleAggregateFunction(sum, UInt64),
     -- Fees --
     `total_fee` SimpleAggregateFunction(sum, Int256),
+    `total_refund` SimpleAggregateFunction(sum, Int256),
     `fee_count` SimpleAggregateFunction(sum, UInt64)
-    -- effective_fee_rate is computed at query time as total_fee / collateral_volume
-    -- (the orderbook column above already holds the trade-volume denominator)
+    -- net_fee = total_fee - total_refund (V1 nets out maker rebates; V2 refund=0)
+    -- effective_fee_rate is computed at query time from collateral_volume above
 ) ENGINE = AggregatingMergeTree
 ORDER BY (interval_min, timestamp)
 SETTINGS index_granularity = 8192;
@@ -46,6 +47,7 @@ SELECT
     toUInt64(0) AS merge_count,
     toUInt64(0) AS oi_transactions,
     toInt256(0) AS total_fee,
+    toInt256(0) AS total_refund,
     toUInt64(0) AS fee_count
 FROM state_orderbook
 GROUP BY interval_min, timestamp;
@@ -69,6 +71,7 @@ SELECT
     sum(merge_count) AS merge_count,
     sum(transactions) AS oi_transactions,
     toInt256(0) AS total_fee,
+    toInt256(0) AS total_refund,
     toUInt64(0) AS fee_count
 FROM state_open_interest
 GROUP BY interval_min, timestamp;
@@ -92,6 +95,7 @@ SELECT
     toUInt64(0) AS merge_count,
     toUInt64(0) AS oi_transactions,
     sum(total_fee) AS total_fee,
+    sum(total_refund) AS total_refund,
     sum(fee_count) AS fee_count
 FROM state_fee
 GROUP BY interval_min, timestamp;
