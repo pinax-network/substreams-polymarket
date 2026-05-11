@@ -14,15 +14,6 @@
 -- ReplicatedReplacingMergeTree on a cluster. TTL bounds storage to ~3 hourly
 -- snapshots pre-merge. Consumers must read with FINAL.
 
--- Drop legacy continuous MVs and the previous AggregatingMergeTree target so
--- existing databases pick up the new shape. Idempotent: noop on fresh
--- databases.
-DROP TABLE IF EXISTS mv_state_user_position_buy;
-DROP TABLE IF EXISTS mv_state_user_position_sell;
-DROP TABLE IF EXISTS mv_state_user_position_taker_buy;
-DROP TABLE IF EXISTS mv_state_user_position_taker_sell;
-DROP TABLE IF EXISTS state_user_position;
-
 CREATE TABLE IF NOT EXISTS state_user_position (
     refresh_time            DateTime('UTC'),
     interval_min            UInt32 COMMENT '0=all-time, 60=1h, 1440=1d, 10080=1w, 43200=30d',

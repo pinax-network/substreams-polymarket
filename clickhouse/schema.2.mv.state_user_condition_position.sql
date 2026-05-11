@@ -14,15 +14,6 @@
 -- This is the only source where condition_id semantically holds market_id; see
 -- the inline comment on the NR convert leg.
 
-DROP TABLE IF EXISTS mv_state_user_condition_position_ct_split;
-DROP TABLE IF EXISTS mv_state_user_condition_position_ct_merge;
-DROP TABLE IF EXISTS mv_state_user_condition_position_ct_redeem;
-DROP TABLE IF EXISTS mv_state_user_condition_position_nr_split;
-DROP TABLE IF EXISTS mv_state_user_condition_position_nr_merge;
-DROP TABLE IF EXISTS mv_state_user_condition_position_nr_redeem;
-DROP TABLE IF EXISTS mv_state_user_condition_position_nr_convert;
-DROP TABLE IF EXISTS state_user_condition_position;
-
 CREATE TABLE IF NOT EXISTS state_user_condition_position (
     refresh_time            DateTime('UTC'),
     interval_min            UInt32 COMMENT '0=all-time, 60=1h, 1440=1d, 10080=1w, 43200=30d',

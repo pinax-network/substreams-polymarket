@@ -10,6 +10,12 @@ when a table already exists, so column additions/type changes between releases
 won't land on a DB that already has the previous shape. Cut over by backfilling
 into a new database, then flipping the consumer overlay.
 
+`schema.sql` contains no `DROP TABLE` statements that would destroy state
+data, so it is safe to re-apply against an existing database (idempotent
+no-op on the state tables). The pre-existing `DROP TABLE IF EXISTS mv_state_fee`
+in `schema.2.mv.state_fee.sql` drops the MV definition only, not the underlying
+`state_fee` table; re-applying it does not lose fee data.
+
 The substreams sink doesn't create `CREATE MATERIALIZED VIEW … REFRESH …`
 statements; the refresh MVs in `schema.sql` must be applied manually after
 `substreams-sink-sql setup`. One-shot apply:

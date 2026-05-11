@@ -4,12 +4,6 @@
 --
 -- Snapshot pattern, refreshed hourly. See state_user_position for design notes.
 
-DROP TABLE IF EXISTS mv_state_market_position_buy;
-DROP TABLE IF EXISTS mv_state_market_position_sell;
-DROP TABLE IF EXISTS mv_state_market_position_taker_buy;
-DROP TABLE IF EXISTS mv_state_market_position_taker_sell;
-DROP TABLE IF EXISTS state_market_position;
-
 CREATE TABLE IF NOT EXISTS state_market_position (
     refresh_time            DateTime('UTC'),
     interval_min            UInt32 COMMENT '0=all-time, 60=1h, 1440=1d, 10080=1w, 43200=30d',
