@@ -2,7 +2,7 @@
 -- Materialized from state_orderbook (interval_min=1440) for fast price lookups
 -- Used by positions endpoints to avoid scanning the full daily orderbook on every query
 CREATE TABLE IF NOT EXISTS state_latest_price (
-    `asset_id` String,
+    `asset_id` UInt256,
     `timestamp` DateTime('UTC'),
     `close` Float64
 ) ENGINE = ReplacingMergeTree(timestamp)

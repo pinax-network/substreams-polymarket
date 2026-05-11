@@ -3,6 +3,26 @@
 This package imports `polymarket_database_change` and applies the ClickHouse
 schema in `schema.sql`.
 
+## Deploying
+
+The schema is **fresh-install only** — `CREATE TABLE IF NOT EXISTS` skips
+when a table already exists, so column additions/type changes between releases
+won't land on a DB that already has the previous shape. Cut over by backfilling
+into a new database, then flipping the consumer overlay.
+
+The substreams sink doesn't create `CREATE MATERIALIZED VIEW … REFRESH …`
+statements; the refresh MVs in `schema.sql` must be applied manually after
+`substreams-sink-sql setup`. One-shot apply:
+
+```bash
+clickhouse client --host <host> --database <db> --multiquery < schema.sql
+substreams-sink-sql setup --system-tables-only <dsn> <spkg>
+```
+
+(The schema-then-system-tables order works around `substreams-sink-sql`'s
+schema parser, which rejects the trailing newline in `schema.sql` with
+`code 62, message: Empty query`.)
+
 ## ClickHouse SQL Names
 
 ### Schema Files
@@ -107,31 +127,26 @@ schema in `schema.sql`.
 
 ### Materialized Views
 
+Continuous MVs (sink-managed):
+
 - `mv_state_collateral_flow_wrapped`
 - `mv_state_collateral_flow_unwrapped`
 - `mv_state_fee`
-- `mv_state_market_position_buy`
-- `mv_state_market_position_sell`
-- `mv_state_market_position_taker_buy`
-- `mv_state_market_position_taker_sell`
+- `mv_state_fee_refund`
 - `mv_state_open_interest_split`
 - `mv_state_open_interest_merge`
 - `mv_state_orderbook`
-- `mv_state_user_condition_position_ct_split`
-- `mv_state_user_condition_position_ct_merge`
-- `mv_state_user_condition_position_ct_redeem`
-- `mv_state_user_condition_position_nr_split`
-- `mv_state_user_condition_position_nr_merge`
-- `mv_state_user_condition_position_nr_convert`
-- `mv_state_user_condition_position_nr_redeem`
-- `mv_state_user_position_buy`
-- `mv_state_user_position_sell`
-- `mv_state_user_position_taker_buy`
-- `mv_state_user_position_taker_sell`
 - `mv_state_latest_price`
 - `mv_state_platform_orderbook`
 - `mv_state_platform_oi`
 - `mv_state_platform_fee`
+
+Refresh MVs (must be applied manually after `substreams-sink-sql setup`;
+`substreams-sink-sql` does not create `CREATE MATERIALIZED VIEW … REFRESH …`):
+
+- `mv_refresh_state_user_position`
+- `mv_refresh_state_market_position`
+- `mv_refresh_state_user_condition_position`
 - `mv_refresh_state_user`
 
 ### Query Views

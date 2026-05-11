@@ -1,13 +1,11 @@
 -- User Leaderboard --
--- Pre-computed user trading stats with PNL across lookback windows.
--- Refreshed hourly via APPEND-mode refresh MV.
+-- Per (interval_min, user) snapshot rolling up state_user_position across
+-- token_ids and adding unrealized PNL via state_latest_price. Refreshed
+-- hourly via an APPEND-mode refresh MV.
 --
--- The target uses ReplacingMergeTree(refresh_time) so the latest snapshot per
--- (interval_min, user) wins after merges. CH refuses non-APPEND refresh MVs
--- targeting Replicated tables on Atomic databases, so APPEND + Replacing is
--- the working pattern; consumers must read with FINAL.
---
--- TTL bounds storage to ~3 hourly snapshots pre-merge.
+-- Engine: ReplacingMergeTree(refresh_time) — the substreams sink rewrites to
+-- ReplicatedReplacingMergeTree on a cluster. TTL bounds storage to ~3 hourly
+-- snapshots pre-merge. Consumers must read with FINAL.
 
 CREATE TABLE IF NOT EXISTS state_user (
     refresh_time             DateTime('UTC'),
@@ -27,52 +25,46 @@ CREATE TABLE IF NOT EXISTS state_user (
 ORDER BY (interval_min, user)
 TTL refresh_time + INTERVAL 3 HOUR;
 
+-- state_user_position already encodes the interval snapshots (0/60/1440/10080/
+-- 43200), so the leaderboard rolls up token_ids → users for the same intervals.
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_refresh_state_user
 REFRESH EVERY 1 HOUR APPEND
 TO state_user
 AS
-WITH base AS (
+WITH per_user_token AS (
     SELECT
         interval_min,
-        agg.user AS user,
-        toFloat64(sum(agg.buy_cost)) / 1e6 AS buy_cost,
-        toFloat64(sum(agg.sell_revenue)) / 1e6 AS sell_revenue,
-        sum(agg.buy_count) AS buy_count,
-        sum(agg.sell_count) AS sell_count,
-        sum(agg.transactions) AS transactions,
-        toFloat64(sum(agg.sell_revenue) - sum(agg.buy_cost)) / 1e6 AS realized_pnl,
-        sumIf(toFloat64(agg.net_amount) / 1e6 * coalesce(lp.close, 0), agg.net_amount > 0) AS unrealized_pnl,
-        toFloat64(sum(agg.sell_revenue) - sum(agg.buy_cost)) / 1e6
-            + sumIf(toFloat64(agg.net_amount) / 1e6 * coalesce(lp.close, 0), agg.net_amount > 0) AS total_pnl,
-        min(agg.min_timestamp) AS first_trade,
-        max(agg.max_timestamp) AS last_trade
-    FROM (
-        SELECT
-            tp.interval_min AS interval_min,
-            user, token_id,
-            sum(buy_cost) AS buy_cost, sum(sell_revenue) AS sell_revenue,
-            sum(buy_count) AS buy_count, sum(sell_count) AS sell_count, sum(transactions) AS transactions,
-            sum(net_amount) AS net_amount,
-            min(min_timestamp) AS min_timestamp, max(max_timestamp) AS max_timestamp
-        FROM state_user_position
-        CROSS JOIN (
-            SELECT 0 AS interval_min, 10080 AS source_iv, toDateTime('1970-01-01', 'UTC') AS since
-            UNION ALL SELECT 43200, 1440, now() - INTERVAL 30 DAY
-            UNION ALL SELECT 10080, 1440, now() - INTERVAL 7 DAY
-            UNION ALL SELECT 1440, 60, now() - INTERVAL 1 DAY
-            UNION ALL SELECT 60, 60, now() - INTERVAL 1 HOUR
-        ) tp
-        WHERE state_user_position.interval_min = tp.source_iv AND timestamp >= tp.since
-        GROUP BY tp.interval_min, user, token_id
-    ) agg
-    LEFT JOIN state_latest_price lp FINAL ON lp.asset_id = toString(agg.token_id)
-    GROUP BY interval_min, agg.user
+        user,
+        token_id,
+        buy_amount,
+        sell_amount,
+        net_amount,
+        buy_cost,
+        sell_revenue,
+        buy_count,
+        sell_count,
+        transactions,
+        first_trade,
+        last_trade
+    FROM state_user_position FINAL
+    WHERE interval_min IN (0, 60, 1440, 10080, 43200)
 )
 SELECT
-    now() AS refresh_time,
-    interval_min, user, buy_cost, sell_revenue,
-    buy_count, sell_count, transactions,
-    realized_pnl, unrealized_pnl, total_pnl,
-    first_trade, last_trade
-FROM base
+    now()                                                                                AS refresh_time,
+    p.interval_min                                                                       AS interval_min,
+    p.user                                                                               AS user,
+    toFloat64(sum(p.buy_cost)) / 1e6                                                     AS buy_cost,
+    toFloat64(sum(p.sell_revenue)) / 1e6                                                 AS sell_revenue,
+    sum(p.buy_count)                                                                     AS buy_count,
+    sum(p.sell_count)                                                                    AS sell_count,
+    sum(p.transactions)                                                                  AS transactions,
+    toFloat64(sum(p.sell_revenue) - sum(p.buy_cost)) / 1e6                               AS realized_pnl,
+    sumIf(toFloat64(p.net_amount) / 1e6 * coalesce(lp.close, 0), p.net_amount > 0)       AS unrealized_pnl,
+    toFloat64(sum(p.sell_revenue) - sum(p.buy_cost)) / 1e6
+        + sumIf(toFloat64(p.net_amount) / 1e6 * coalesce(lp.close, 0), p.net_amount > 0) AS total_pnl,
+    min(p.first_trade)                                                                   AS first_trade,
+    max(p.last_trade)                                                                    AS last_trade
+FROM per_user_token p
+LEFT JOIN state_latest_price lp FINAL ON lp.asset_id = p.token_id
+GROUP BY p.interval_min, p.user
 SETTINGS max_execution_time = 600;
