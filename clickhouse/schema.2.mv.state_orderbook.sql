@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS state_orderbook (
 
     -- OrderBook identity --
     -- Uses asset_id (Token) as the smallest aggregating market
-    asset_id                String COMMENT 'Asset ID (Token ID as string)',
+    asset_id                UInt256 COMMENT 'Asset ID (outcome token ID, never the USDC sentinel 0)',
 
     -- Trading quantities --
     trades_quantity         SimpleAggregateFunction(sum, UInt64) COMMENT 'Number of trades of any kind against this order book',
@@ -39,6 +39,13 @@ CREATE TABLE IF NOT EXISTS state_orderbook (
     open                    AggregateFunction(argMin, Float64, UInt64) COMMENT 'opening price in USD in the window',
     quantile                AggregateFunction(quantileDeterministic, Float64, UInt64) COMMENT 'quantile price in USD in the window',
     close                   AggregateFunction(argMax, Float64, UInt64) COMMENT 'closing price in USD in the window',
+
+    -- V1/V2 era discriminator --
+    -- 1 if this bar contains any V2 OrdersMatched (log_address = V2 CTFExchange or
+    -- V2 NegRiskCTFExchange); 0 if it's V1-only. Token API uses this to nullify
+    -- fee fields on /markets/ohlc when v2_present = 1 (V2 FeeCharged carries no
+    -- token_id, so per-asset fee attribution is structurally impossible).
+    v2_present              SimpleAggregateFunction(max, UInt8) COMMENT 'Max over the window: 1 if any V2 OrdersMatched fell in this bar, 0 otherwise',
 
     -- indexes --
     INDEX idx_timestamp             (timestamp)             TYPE minmax         GRANULARITY 1,
@@ -78,7 +85,15 @@ WITH
     -- The asset being traded is the non-USDC token --
     -- If taker_asset_id is 0 (USDC), the traded asset is maker_asset_id (BUY) --
     -- If maker_asset_id is 0 (USDC), the traded asset is taker_asset_id (SELL) --
-    toString(if(taker_asset_id = 0, maker_asset_id, taker_asset_id)) AS asset_id,
+    if(taker_asset_id = 0, maker_asset_id, taker_asset_id) AS asset_id,
+
+    -- V1/V2 discriminator: 1 if emitted by a V2 CTFExchange / NegRiskCTFExchange.
+    -- V1: 0x4bfb… (CTF), 0xc5d5… (NegRisk).
+    -- V2: 0xe111… (CTF), 0xe222… (NegRisk).
+    if(lower(log_address) IN (
+        '0xe111180000d2663c0091e4f400237545b87b996b',
+        '0xe2222d279d744050d28e00520010520000310f59'
+    ), 1, 0) AS is_v2,
 
     -- BUY: taker pays USDC (taker_asset_id = 0) to receive shares
     if(taker_asset_id = 0, 1, 0) AS is_buy,
@@ -131,7 +146,10 @@ SELECT
     -- Aggregate OHLC prices (in USD) --
     argMinState(price, toUInt64(block_num)) AS open,
     quantileDeterministicState(price, toUInt64(block_num)) AS quantile,
-    argMaxState(price, toUInt64(block_num)) AS close
+    argMaxState(price, toUInt64(block_num)) AS close,
+
+    -- V1/V2 era discriminator --
+    max(is_v2) AS v2_present
 FROM ctfexchange_orders_matched
 -- Filter out trades where neither asset is USDC (edge cases) --
 WHERE taker_asset_id = 0 OR maker_asset_id = 0

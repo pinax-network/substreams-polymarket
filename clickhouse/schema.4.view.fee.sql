@@ -28,7 +28,8 @@ WITH
             max(max_block_num)              AS max_block_num,
             sum(total_fee)                  AS total_fee,
             sum(total_refund)               AS total_refund,
-            sum(fee_count)                  AS fee_count
+            sum(fee_count)                  AS fee_count,
+            max(v2_present)                 AS v2_present
         FROM state_fee
         GROUP BY interval_min, asset_id, timestamp
     ),
@@ -54,6 +55,7 @@ SELECT
     f.total_refund                                                               AS total_refund,
     f.total_fee - f.total_refund                                                 AS net_fee,
     f.fee_count                                                                  AS fee_count,
+    f.v2_present                                                                 AS v2_present,
     v.collateral_volume                                                          AS collateral_volume,
     v.trade_count                                                                AS trade_count,
     toFloat64(f.total_fee) / 1000000.0                                           AS scaled_total_fee,

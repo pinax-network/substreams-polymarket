@@ -30,7 +30,9 @@ SELECT
     argMinMerge(open) AS open,
     quantileDeterministicMerge(0.95)(quantile) AS high,
     quantileDeterministicMerge(0.05)(quantile) AS low,
-    argMaxMerge(close) AS close
+    argMaxMerge(close) AS close,
+    -- V1/V2 era discriminator (max collapses bar to a single flag) --
+    max(v2_present) AS v2_present
 FROM state_orderbook
 GROUP BY
     interval_min,

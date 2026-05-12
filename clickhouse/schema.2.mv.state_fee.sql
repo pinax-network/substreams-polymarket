@@ -30,12 +30,19 @@ CREATE TABLE IF NOT EXISTS state_fee (
     max_block_num           SimpleAggregateFunction(max, UInt32) COMMENT 'last block number seen',
 
     -- Fee identity --
-    asset_id                String COMMENT 'V1: asset the fee was paid in. BUY-side fees use the outcome token id; SELL-side fees use "0" (USDC). V2: always "0" (FeeCharged carries no token_id, fees are pUSD-only)',
+    asset_id                UInt256 COMMENT 'V1: asset the fee was paid in. BUY-side fees use the outcome token id; SELL-side fees use 0 (USDC sentinel). V2: always 0 (FeeCharged carries no token_id, fees are pUSD-only)',
 
     -- Fee aggregates --
     total_fee               SimpleAggregateFunction(sum, Int256) COMMENT 'Gross fees collected in window (USDC base units, before maker rebates)',
     total_refund            SimpleAggregateFunction(sum, Int256) COMMENT 'Maker rebates refunded in window (V1 only; 0 on V2). Net fee = total_fee - total_refund',
     fee_count               SimpleAggregateFunction(sum, UInt64) COMMENT 'Number of FeeCharged events in window',
+
+    -- V1/V2 era discriminator --
+    -- 1 if this bar contains any V2 FeeCharged (log_address = V2 CTFExchange or
+    -- V2 NegRiskCTFExchange); 0 if V1-only. V2 FeeCharged always lands on the
+    -- asset_id=0 sentinel row, so v2_present on the asset_id=0 bar tells the
+    -- Token API to nullify fee fields for the matching window.
+    v2_present              SimpleAggregateFunction(max, UInt8) COMMENT 'Max over the window: 1 if any V2 FeeCharged fell in this bar, 0 otherwise',
 
     -- indexes --
     INDEX idx_timestamp         (timestamp)         TYPE minmax         GRANULARITY 1,
@@ -62,7 +69,12 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS mv_state_fee
 TO state_fee
 AS
 WITH
-    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals
+    [1, 5, 10, 30, 60, 240, 1440, 10080] AS intervals,
+    -- V1/V2 discriminator: V2 CTFExchange and NegRiskCTFExchange addresses.
+    if(lower(log_address) IN (
+        '0xe111180000d2663c0091e4f400237545b87b996b',
+        '0xe2222d279d744050d28e00520010520000310f59'
+    ), 1, 0) AS is_v2
 SELECT
     arrayJoin(intervals) AS interval_min,
     toDateTime(intDiv(toUInt32(timestamp), interval_min * 60) * interval_min * 60, 'UTC') AS timestamp,
@@ -70,10 +82,11 @@ SELECT
     max(timestamp) AS max_timestamp,
     min(block_num) AS min_block_num,
     max(block_num) AS max_block_num,
-    toString(token_id) AS asset_id,
+    token_id AS asset_id,
     sum(toInt256(amount)) AS total_fee,
     toInt256(0) AS total_refund,
-    count() AS fee_count
+    count() AS fee_count,
+    max(is_v2) AS v2_present
 FROM ctfexchange_fee_charged
 GROUP BY
     interval_min,
@@ -96,10 +109,12 @@ SELECT
     max(timestamp) AS max_timestamp,
     min(block_num) AS min_block_num,
     max(block_num) AS max_block_num,
-    toString(token_id) AS asset_id,
+    token_id AS asset_id,
     toInt256(0) AS total_fee,
     sum(toInt256(refund)) AS total_refund,
-    toUInt64(0) AS fee_count
+    toUInt64(0) AS fee_count,
+    -- FeeModule is V1-only (V2 has no FeeRefunded source); refunds never set v2_present.
+    toUInt8(0) AS v2_present
 FROM feemodule_fee_refunded
 GROUP BY
     interval_min,
