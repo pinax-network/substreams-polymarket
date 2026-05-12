@@ -30,11 +30,11 @@ CREATE TABLE IF NOT EXISTS state_fee (
     max_block_num           SimpleAggregateFunction(max, UInt32) COMMENT 'last block number seen',
 
     -- Fee identity --
-    asset_id                UInt256 COMMENT 'V1: asset the fee was paid in. BUY-side fees use the outcome token id; SELL-side fees use 0 (USDC sentinel). V2: always 0 (FeeCharged carries no token_id, fees are pUSD-only)',
+    asset_id                UInt256 COMMENT 'V1: asset the fee was paid in. BUY-side fees use the outcome token id, SELL-side fees use 0 (USDC sentinel). V2: always 0 (FeeCharged carries no token_id, fees are pUSD-only)',
 
     -- Fee aggregates --
     total_fee               SimpleAggregateFunction(sum, Int256) COMMENT 'Gross fees collected in window (USDC base units, before maker rebates)',
-    total_refund            SimpleAggregateFunction(sum, Int256) COMMENT 'Maker rebates refunded in window (V1 only; 0 on V2). Net fee = total_fee - total_refund',
+    total_refund            SimpleAggregateFunction(sum, Int256) COMMENT 'Maker rebates refunded in window (V1 only, 0 on V2). Net fee = total_fee - total_refund',
     fee_count               SimpleAggregateFunction(sum, UInt64) COMMENT 'Number of FeeCharged events in window',
 
     -- V1/V2 era discriminator --

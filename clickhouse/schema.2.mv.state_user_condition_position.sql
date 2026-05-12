@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS state_user_condition_position (
     refresh_time            DateTime('UTC'),
     interval_min            UInt32 COMMENT '0=all-time, 60=1h, 1440=1d, 10080=1w, 43200=30d',
     user                    String COMMENT 'User address (hex with 0x prefix)',
-    condition_id            String COMMENT 'Condition ID (bytes32 as hex with 0x prefix); for NR convert this carries market_id',
+    condition_id            String COMMENT 'Condition ID (bytes32 as hex with 0x prefix), for NR convert this carries market_id',
     split_amount            Int256 COMMENT 'Total amount from splits',
     merge_amount            Int256 COMMENT 'Total amount from merges',
     redeem_payout           Int256 COMMENT 'Total USDC payout from redemptions',
