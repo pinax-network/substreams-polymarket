@@ -3,8 +3,15 @@
 -- activity from ConditionalTokens and NegRiskAdapter. Refreshed hourly via an
 -- APPEND-mode refresh MV. Same snapshot pattern as state_user_position.
 --
--- CT branches use a Polymarket-canonical collateral allowlist (NR is USDC.e by
--- design and needs no filter). See pinax-network/token-api#489.
+-- Allowlist invariant: CT split/merge/redeem branches gate on a Polymarket-
+-- canonical collateral set (USDC.e, Wrapped Collateral, Polymarket USD). All
+-- three are 6-decimal by design; the allowlist keeps raw amount/payout units
+-- compatible with the `/1e6` USDC scaling applied by downstream consumers and
+-- prevents non-6-decimal noise (e.g. WMATIC) from inflating per-user
+-- aggregates. NR branches need no filter -- the NegRiskAdapter is exclusively
+-- USDC.e-backed by design. The same list appears 2x in
+-- schema.2.mv.state_open_interest.sql -- 5 sites total, keep in sync. See
+-- pinax-network/token-api#489.
 --
 -- NR convert uses market_id as the position key (multi-question market level);
 -- this is the only source where condition_id semantically holds market_id.
@@ -61,8 +68,8 @@ WITH
         FROM conditionaltokens_position_split
         WHERE collateral_token IN (
             '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
-            '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
-            '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+            '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- Wrapped Collateral (NegRisk)
+            '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- Polymarket USD (pUSD)
         )
         UNION ALL
         -- ConditionalTokens positions merge (CT merge) --
@@ -82,8 +89,8 @@ WITH
         FROM conditionaltokens_positions_merge
         WHERE collateral_token IN (
             '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
-            '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
-            '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+            '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- Wrapped Collateral (NegRisk)
+            '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- Polymarket USD (pUSD)
         )
         UNION ALL
         -- ConditionalTokens payout redemption (CT redeem) --
@@ -103,8 +110,8 @@ WITH
         FROM conditionaltokens_payout_redemption
         WHERE collateral_token IN (
             '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
-            '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
-            '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+            '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- Wrapped Collateral (NegRisk)
+            '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- Polymarket USD (pUSD)
         )
         UNION ALL
         -- NegRiskAdapter position split (NR split) --

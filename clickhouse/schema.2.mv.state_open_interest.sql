@@ -2,6 +2,14 @@
 -- Aggregated state for Market and Global Open Interest
 -- Calculated from conditionaltokens_position_split (+) and conditionaltokens_positions_merge (-)
 -- Reference: https://github.com/Polymarket/polymarket-subgraph/tree/main/oi-subgraph
+--
+-- Allowlist invariant: split/merge MVs gate on a Polymarket-canonical
+-- collateral set (USDC.e, Wrapped Collateral, Polymarket USD). All three are
+-- 6-decimal by design; the allowlist exists to keep raw `amount` units
+-- compatible with the `/1e6` USDC scaling applied by downstream consumers
+-- (showcase dashboard, fee/OI views). The same list appears 3x in
+-- schema.2.mv.state_user_condition_position.sql -- 5 sites total, keep in
+-- sync. See pinax-network/token-api#489.
 
 -- State Open Interest Table --
 CREATE TABLE IF NOT EXISTS state_open_interest (
@@ -83,12 +91,11 @@ SELECT
     -- Unique stakeholders --
     uniqState(stakeholder) AS uniq_stakeholders
 FROM conditionaltokens_position_split
--- Restrict to Polymarket-canonical collaterals (the public CT framework
--- accepts arbitrary ERC20s). See pinax-network/token-api#489.
+-- See file-header allowlist invariant.
 WHERE collateral_token IN (
     '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
-    '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
-    '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+    '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- Wrapped Collateral (NegRisk)
+    '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- Polymarket USD (pUSD)
 )
 GROUP BY
     interval_min,
@@ -132,11 +139,11 @@ SELECT
     -- Unique stakeholders --
     uniqState(stakeholder) AS uniq_stakeholders
 FROM conditionaltokens_positions_merge
--- See split MV above.
+-- See file-header allowlist invariant.
 WHERE collateral_token IN (
     '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
-    '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
-    '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+    '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- Wrapped Collateral (NegRisk)
+    '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- Polymarket USD (pUSD)
 )
 GROUP BY
     interval_min,
