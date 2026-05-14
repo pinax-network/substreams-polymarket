@@ -39,7 +39,7 @@ TTL refresh_time + INTERVAL 3 HOUR
 COMMENT 'User condition positions snapshot per refresh window. Read with FINAL.';
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_refresh_state_user_condition_position
-REFRESH EVERY 1 HOUR OFFSET 30 MINUTE APPEND
+REFRESH EVERY 1 HOUR OFFSET 24 MINUTE APPEND
 TO state_user_condition_position
 AS
 WITH
@@ -204,4 +204,4 @@ FROM events e
 CROSS JOIN time_periods tp
 WHERE e.timestamp >= tp.since
 GROUP BY tp.interval_min, e.user, e.condition_id
-SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 600;
+SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 720;

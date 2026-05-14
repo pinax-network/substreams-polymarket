@@ -80,4 +80,4 @@ FROM sides s
 CROSS JOIN time_periods tp
 WHERE s.timestamp >= tp.since
 GROUP BY tp.interval_min, s.token_id, s.user
-SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 600;
+SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 720;

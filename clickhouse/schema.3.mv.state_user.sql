@@ -28,7 +28,7 @@ TTL refresh_time + INTERVAL 3 HOUR;
 -- state_user_position already encodes the interval snapshots (0/60/1440/10080/
 -- 43200), so the leaderboard rolls up token_ids → users for the same intervals.
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_refresh_state_user
-REFRESH EVERY 1 HOUR OFFSET 45 MINUTE APPEND
+REFRESH EVERY 1 HOUR OFFSET 56 MINUTE APPEND
 TO state_user
 AS
 WITH per_user_token AS (
