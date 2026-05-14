@@ -83,11 +83,13 @@ SELECT
     -- Unique stakeholders --
     uniqState(stakeholder) AS uniq_stakeholders
 FROM conditionaltokens_position_split
--- Drop non-canonical-decimals collateral splits (e.g. an 18-decimal WMATIC split
--- inflates aggregates by 10^12 because / 1e6 is hard-coded downstream). Cap is
--- well above any realistic 6-decimal Polymarket split (~$10B post-scale). See
--- pinax-network/token-api#489.
-WHERE amount < toUInt256('10000000000000000')
+-- Restrict to Polymarket-canonical collaterals (the public CT framework
+-- accepts arbitrary ERC20s). See pinax-network/token-api#489.
+WHERE collateral_token IN (
+    '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
+    '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
+    '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+)
 GROUP BY
     interval_min,
     parent_collection_id, condition_id,
@@ -130,8 +132,12 @@ SELECT
     -- Unique stakeholders --
     uniqState(stakeholder) AS uniq_stakeholders
 FROM conditionaltokens_positions_merge
--- See split MV above; same cap on amount to suppress non-USDC-decimals merges.
-WHERE amount < toUInt256('10000000000000000')
+-- See split MV above.
+WHERE collateral_token IN (
+    '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
+    '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
+    '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+)
 GROUP BY
     interval_min,
     parent_collection_id, condition_id,

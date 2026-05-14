@@ -1,18 +1,13 @@
 -- User Condition Position --
 -- Per (interval_min, user, condition_id) snapshot of split/merge/redeem/convert
 -- activity from ConditionalTokens and NegRiskAdapter. Refreshed hourly via an
--- APPEND-mode refresh MV, replacing the previous 7 continuous
--- AggregatingMergeTree MVs (CT split/merge/redeem + NR split/merge/redeem/
--- convert). Same snapshot pattern as state_user_position.
+-- APPEND-mode refresh MV. Same snapshot pattern as state_user_position.
 --
--- The non-canonical-decimals filter (amount < 10^16, see
--- pinax-network/token-api#489) is preserved per source so WMATIC-style 18-decimal
--- collateral doesn't inflate aggregates by 10^12.
+-- CT branches use a Polymarket-canonical collateral allowlist (NR is USDC.e by
+-- design and needs no filter). See pinax-network/token-api#489.
 --
--- NegRisk conversions use market_id as the position key because this event
--- operates at the multi-question market level (different from condition_id).
--- This is the only source where condition_id semantically holds market_id; see
--- the inline comment on the NR convert leg.
+-- NR convert uses market_id as the position key (multi-question market level);
+-- this is the only source where condition_id semantically holds market_id.
 
 CREATE TABLE IF NOT EXISTS state_user_condition_position (
     refresh_time            DateTime('UTC'),
@@ -64,7 +59,11 @@ WITH
             toUInt64(0)                  AS redeem_count,
             toUInt64(0)                  AS convert_count
         FROM conditionaltokens_position_split
-        WHERE amount < toUInt256('10000000000000000')
+        WHERE collateral_token IN (
+            '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
+            '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
+            '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+        )
         UNION ALL
         -- ConditionalTokens positions merge (CT merge) --
         SELECT
@@ -81,7 +80,11 @@ WITH
             toUInt64(0)                  AS redeem_count,
             toUInt64(0)                  AS convert_count
         FROM conditionaltokens_positions_merge
-        WHERE amount < toUInt256('10000000000000000')
+        WHERE collateral_token IN (
+            '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
+            '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
+            '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+        )
         UNION ALL
         -- ConditionalTokens payout redemption (CT redeem) --
         SELECT
@@ -98,7 +101,11 @@ WITH
             toUInt64(1)                  AS redeem_count,
             toUInt64(0)                  AS convert_count
         FROM conditionaltokens_payout_redemption
-        WHERE payout < toUInt256('10000000000000000')
+        WHERE collateral_token IN (
+            '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', -- USDC.e
+            '0x3a3bd7bb9528e159577f7c2e685cc81a765002e2', -- WCOL
+            '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'  -- pUSD
+        )
         UNION ALL
         -- NegRiskAdapter position split (NR split) --
         SELECT
