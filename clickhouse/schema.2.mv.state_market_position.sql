@@ -1,8 +1,7 @@
 -- Market Position --
--- Same data as state_user_position but with token_id-first ordering, optimized
--- for "all users on a given market" queries.
---
--- Snapshot pattern, refreshed hourly. See state_user_position for design notes.
+-- Same data as state_user_position with token_id-first ordering, optimized
+-- for "all users on a given market" queries. Derived from state_user_position
+-- FINAL so both tables share one source of truth.
 
 CREATE TABLE IF NOT EXISTS state_market_position (
     refresh_time            DateTime('UTC'),
@@ -25,59 +24,23 @@ TTL refresh_time + INTERVAL 3 HOUR
 COMMENT 'Market positions — same data as state_user_position with token_id-first ordering. Read with FINAL.';
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_refresh_state_market_position
-REFRESH EVERY 1 HOUR OFFSET 0 MINUTE APPEND
+REFRESH EVERY 1 HOUR OFFSET 5 MINUTE APPEND
 TO state_market_position
 AS
-WITH
-    time_periods AS (
-        SELECT 0 AS interval_min, toDateTime('1970-01-01', 'UTC') AS since
-        UNION ALL SELECT 43200, now() - INTERVAL 30 DAY
-        UNION ALL SELECT 10080, now() - INTERVAL 7 DAY
-        UNION ALL SELECT 1440,  now() - INTERVAL 1 DAY
-        UNION ALL SELECT 60,    now() - INTERVAL 1 HOUR
-    ),
-    sides AS (
-        SELECT
-            timestamp                                                   AS timestamp,
-            maker                                                        AS user,
-            if(maker_asset_id = 0, taker_asset_id, maker_asset_id)       AS token_id,
-            if(maker_asset_id = 0, toInt256(taker_amount_filled), toInt256(0)) AS buy_amount,
-            if(maker_asset_id = 0, toInt256(0), toInt256(maker_amount_filled)) AS sell_amount,
-            if(maker_asset_id = 0, toInt256(maker_amount_filled), toInt256(0)) AS buy_cost,
-            if(maker_asset_id = 0, toInt256(0), toInt256(taker_amount_filled)) AS sell_revenue,
-            toUInt64(if(maker_asset_id = 0, 1, 0))                       AS buy_count,
-            toUInt64(if(maker_asset_id = 0, 0, 1))                       AS sell_count
-        FROM ctfexchange_order_filled
-        UNION ALL
-        SELECT
-            timestamp                                                   AS timestamp,
-            taker                                                        AS user,
-            if(maker_asset_id = 0, taker_asset_id, maker_asset_id)       AS token_id,
-            if(maker_asset_id != 0, toInt256(maker_amount_filled), toInt256(0)) AS buy_amount,
-            if(maker_asset_id != 0, toInt256(0), toInt256(taker_amount_filled)) AS sell_amount,
-            if(maker_asset_id != 0, toInt256(taker_amount_filled), toInt256(0)) AS buy_cost,
-            if(maker_asset_id != 0, toInt256(0), toInt256(maker_amount_filled)) AS sell_revenue,
-            toUInt64(if(maker_asset_id != 0, 1, 0))                      AS buy_count,
-            toUInt64(if(maker_asset_id != 0, 0, 1))                      AS sell_count
-        FROM ctfexchange_order_filled
-    )
 SELECT
-    now()                                       AS refresh_time,
-    tp.interval_min                             AS interval_min,
-    s.user                                      AS user,
-    s.token_id                                  AS token_id,
-    sum(s.buy_amount)                           AS buy_amount,
-    sum(s.sell_amount)                          AS sell_amount,
-    sum(s.buy_amount) - sum(s.sell_amount)      AS net_amount,
-    sum(s.buy_cost)                             AS buy_cost,
-    sum(s.sell_revenue)                         AS sell_revenue,
-    sum(s.buy_count)                            AS buy_count,
-    sum(s.sell_count)                           AS sell_count,
-    sum(s.buy_count) + sum(s.sell_count)        AS transactions,
-    min(s.timestamp)                            AS first_trade,
-    max(s.timestamp)                            AS last_trade
-FROM sides s
-CROSS JOIN time_periods tp
-WHERE s.timestamp >= tp.since
-GROUP BY tp.interval_min, s.token_id, s.user
-SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 720;
+    now()           AS refresh_time,
+    interval_min,
+    user,
+    token_id,
+    buy_amount,
+    sell_amount,
+    net_amount,
+    buy_cost,
+    sell_revenue,
+    buy_count,
+    sell_count,
+    transactions,
+    first_trade,
+    last_trade
+FROM state_user_position FINAL
+SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 360;
