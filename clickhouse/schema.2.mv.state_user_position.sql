@@ -41,7 +41,7 @@ COMMENT 'User token positions snapshot per refresh window. Read with FINAL.';
 -- mapper translates V2 (side, token_id) → V1 (maker_asset_id, taker_asset_id),
 -- this logic applies uniformly to both eras.
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_refresh_state_user_position
-REFRESH EVERY 1 HOUR APPEND
+REFRESH EVERY 1 HOUR OFFSET 15 MINUTE APPEND
 TO state_user_position
 AS
 WITH
@@ -98,4 +98,4 @@ FROM sides s
 CROSS JOIN time_periods tp
 WHERE s.timestamp >= tp.since
 GROUP BY tp.interval_min, s.user, s.token_id
-SETTINGS max_execution_time = 600;
+SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 600;

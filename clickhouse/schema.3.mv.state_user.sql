@@ -28,7 +28,7 @@ TTL refresh_time + INTERVAL 3 HOUR;
 -- state_user_position already encodes the interval snapshots (0/60/1440/10080/
 -- 43200), so the leaderboard rolls up token_ids → users for the same intervals.
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_refresh_state_user
-REFRESH EVERY 1 HOUR APPEND
+REFRESH EVERY 1 HOUR OFFSET 45 MINUTE APPEND
 TO state_user
 AS
 WITH per_user_token AS (
@@ -67,4 +67,4 @@ SELECT
 FROM per_user_token p
 LEFT JOIN state_latest_price lp FINAL ON lp.asset_id = p.token_id
 GROUP BY p.interval_min, p.user
-SETTINGS max_execution_time = 600;
+SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 600;
