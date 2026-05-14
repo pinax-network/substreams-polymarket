@@ -25,7 +25,7 @@ TTL refresh_time + INTERVAL 3 HOUR
 COMMENT 'Market positions — same data as state_user_position with token_id-first ordering. Read with FINAL.';
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_refresh_state_market_position
-REFRESH EVERY 1 HOUR APPEND
+REFRESH EVERY 1 HOUR OFFSET 0 MINUTE APPEND
 TO state_market_position
 AS
 WITH
@@ -80,4 +80,4 @@ FROM sides s
 CROSS JOIN time_periods tp
 WHERE s.timestamp >= tp.since
 GROUP BY tp.interval_min, s.token_id, s.user
-SETTINGS max_execution_time = 600;
+SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 600;
