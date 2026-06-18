@@ -43,4 +43,4 @@ SELECT
     first_trade,
     last_trade
 FROM state_user_position FINAL
-SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 360;
+SETTINGS max_threads = 4, max_insert_threads = 4, max_execution_time = 1200;
